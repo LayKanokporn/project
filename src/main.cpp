@@ -22,13 +22,16 @@ const char *password = "Infinity";
 unsigned long lastGetTime = 0;
 unsigned long lastConTime = 0;
 
+bool lastVal1 = false;
+bool lastVal2 = false;
+
 // motorO
 int motor1Pin1 = 1;            // Blue   - 28BYJ48 pin 1
 int motor1Pin2 = 2;            // Pink   - 28BYJ48 pin 2
 int motor1Pin3 = 7;            // Yellow - 28BYJ48 pin 3
 int motor1Pin4 = 6;            // Orange - 28BYJ48 pin 4
-int digitalPin1 = 8;           // Declare variable to represent digital pin 4
-int motor1Speed = 5;           // Variable to set stepper speed
+int digitalPin1 = 13;           // Declare variable to represent digital pin 4
+int motor1Speed = 6;           // Variable to set stepper speed
 int threshold1 = 20;           // Threshold value for sensor
 bool sensor1Triggered = false; // Flag variable to track sensor state
 
@@ -37,8 +40,8 @@ int motor2Pin1 = 42;           // Blue   - 28BYJ48 pin 1
 int motor2Pin2 = 41;           // Pink   - 28BYJ48 pin 2
 int motor2Pin3 = 40;           // Yellow - 28BYJ48 pin 3
 int motor2Pin4 = 39;           // Orange - 28BYJ48 pin 4
-int digitalPin2 = 4;           // Declare variable to represent digital pin 4
-int motor2Speed = 4;           // Variable to set stepper speed
+int digitalPin2 = 38;           // Declare variable to represent digital pin 4
+int motor2Speed = 6;           // Variable to set stepper speed
 int threshold2 = 20;           // Threshold value for sensor
 bool sensor2Triggered = false; // Flag variable to track sensor state
 
@@ -265,6 +268,58 @@ void clockwise2()
   delay(motor2Speed);
 }
 
+void sentoutputsensorA()
+{
+
+  String serverName = "https://senior-app.azurewebsites.net/api/medicine/balance";
+  // Check WiFi connection status
+  HTTPClient http;
+  String serverPath = serverName;
+  http.begin(serverName, root_ca);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST("md_set=" + String("ช่อง A") + "&md_output=" + 1);
+
+  if (httpResponseCode > 0)
+  {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+    String payload = http.getString();
+    Serial.println(payload);
+  }
+  else
+  {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
+  }
+  http.end();
+}
+
+void sentoutputsensorB()
+{
+
+  String serverName = "https://senior-app.azurewebsites.net/api/medicine/balance";
+  // Check WiFi connection status
+  HTTPClient http;
+  String serverPath = serverName;
+  http.begin(serverName, root_ca);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST("md_set=" + String("ช่อง B") + "&md_output=" + int(1));
+
+  if (httpResponseCode > 0)
+  {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+    String payload = http.getString();
+    Serial.println(payload);
+  }
+  else
+  {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
+  }
+  http.end();
+}
+
 void stopMotor1()
 {
   digitalWrite(motor1Pin1, LOW);
@@ -339,45 +394,74 @@ void setup()
 
 void loop()
 {
-  unsigned long currentMillis = millis(); // เวลาปัจจุบัน
+  clockwise1();
+  clockwise2();
+  // unsigned long currentMillis = millis(); // เวลาปัจจุบัน
 
-  float temperature = aht20.getTemperature(); // Get temperature from sensor
-  float humidity = aht20.getHumidity(); // Get humidity from sensor
+  // float temperature = aht20.getTemperature(); // Get temperature from sensor
+  // float humidity = aht20.getHumidity();       // Get humidity from sensor
 
-  stopMotor1();
-  bool val1 = digitalRead(digitalPin1);
-  bool val2 = analogRead(digitalPin2);
+  // stopMotor1();
 
-  if (currentMillis - lastGetTime >= 5000)
-  { // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
-    Serial.print("val1 = ");
-    Serial.println(val1);
-    Serial.print("val2 = ");
-    Serial.println(val2); // เรียกใช้ฟังก์ชัน httpsGet()
-    Serial.println(temperature);
-    Serial.println(humidity);
-    lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
+  // if (currentMillis - lastGetTime >= 10)
+  // { // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
+  // bool val1 = digitalRead(digitalPin1);
+  // bool val2 = digitalRead(digitalPin2);
+
+  // if (val1 == 1 && !lastVal1)
+  // {
+  //   sentoutputsensorA();
+  //   lastVal1 = true;
+  // };
+
+  // if (val2 == 1 && !lastVal2) // ตรวจสอบว่า val2 เป็น 1 และยังไม่เคยส่งข้อมูลซ้ำ
+  // {
+  //   sentoutputsensorB();
+  //   lastVal2 = true; // บันทึกสถานะของ val2
+  // }
+
+  // if (val1 == 0 && lastVal1)
+  // {
+  //   lastVal1 = false;
+  // }
+
+  // if (val2 == 0 && lastVal2)
+  // {
+  //   lastVal2 = false;
+  // }
+
+
+  //   Serial.print("val1 = ");
+  //   Serial.println(val1);
+  //   Serial.print("val2 = ");
+  //   Serial.println(val2);        // เรียกใช้ฟังก์ชัน httpsGet()
+  //   lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
+
   }
 
-  if (val1 == LOW && sensor1Triggered)
-  {
-    clockwise1();
-  }
-  else
-  {
-    stopMotor1();
-    sensor1Triggered = true;
-  }
 
-  if (val2 && sensor2Triggered)
-  {
-    clockwise2();
-  }
-  else
-  {
-    stopMotor2();
-    sensor2Triggered = true;
-  }
+
+  
+
+  // if (val1 == LOW && sensor1Triggered)
+  // {
+  //   clockwise1();
+  // }
+  // else
+  // {
+  //   stopMotor1();
+  //   sensor1Triggered = true;
+  // }
+
+  // if (val2 && sensor2Triggered)
+  // {
+  //   clockwise2();
+  // }
+  // else
+  // {
+  //   stopMotor2();
+  //   sensor2Triggered = true;
+  // }
   // updateWiFiIcon();
   // timenow();
   // timeClient.update();
@@ -390,7 +474,7 @@ void loop()
   //   lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
   // }
   // Display.loop();
-}
+
 
 // if (currentMillis - lastConTime >= 30000)
 // {
