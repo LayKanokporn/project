@@ -234,7 +234,7 @@ void ui_Index_screen_init(void)
     lv_obj_set_style_pad_column(ui_Container1, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_P_name = lv_dropdown_create(ui_Container1);
-    lv_dropdown_set_options(ui_P_name, "Kanokporn\nLay");
+    lv_dropdown_set_options(ui_P_name,"");
     lv_obj_set_width(ui_P_name, lv_pct(84));
     lv_obj_set_height(ui_P_name, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_P_name, 1);
