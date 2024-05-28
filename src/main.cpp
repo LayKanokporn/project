@@ -471,11 +471,11 @@ void loop()
 
   unsigned long currentMillis = millis(); // เวลาปัจจุบัน
 
-  if (currentMillis - lastGetTime >= 30000)
-  {                              // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
-    httpsGet2();                  // เรียกใช้ฟังก์ชัน httpsGet()
-    lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
-  }
+  // if (currentMillis - lastGetTime >= 30000)
+  // {                              // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
+  //   httpsGet();                  // เรียกใช้ฟังก์ชัน httpsGet()
+  //   lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
+  // }
   // Display.loop();
 
   // if (currentMillis - lastConTime >= 10000)
