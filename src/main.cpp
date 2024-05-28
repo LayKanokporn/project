@@ -13,9 +13,6 @@
 
 AHT20 aht20;
 
-int temp = aht20.getTemperature();
-char tempchar = temp;
-int humidity = aht20.getHumidity();
 const char *ssid = "Layya";
 const char *password = "Infinity";
 
@@ -30,7 +27,7 @@ int motor1Pin1 = 1;            // Blue   - 28BYJ48 pin 1
 int motor1Pin2 = 2;            // Pink   - 28BYJ48 pin 2
 int motor1Pin3 = 7;            // Yellow - 28BYJ48 pin 3
 int motor1Pin4 = 6;            // Orange - 28BYJ48 pin 4
-int digitalPin1 = 13;           // Declare variable to represent digital pin 4
+int digitalPin1 = 13;          // Declare variable to represent digital pin 4
 int motor1Speed = 6;           // Variable to set stepper speed
 int threshold1 = 20;           // Threshold value for sensor
 bool sensor1Triggered = false; // Flag variable to track sensor state
@@ -40,7 +37,7 @@ int motor2Pin1 = 42;           // Blue   - 28BYJ48 pin 1
 int motor2Pin2 = 41;           // Pink   - 28BYJ48 pin 2
 int motor2Pin3 = 40;           // Yellow - 28BYJ48 pin 3
 int motor2Pin4 = 39;           // Orange - 28BYJ48 pin 4
-int digitalPin2 = 38;           // Declare variable to represent digital pin 4
+int digitalPin2 = 38;          // Declare variable to represent digital pin 4
 int motor2Speed = 6;           // Variable to set stepper speed
 int threshold2 = 20;           // Threshold value for sensor
 bool sensor2Triggered = false; // Flag variable to track sensor state
@@ -127,7 +124,12 @@ void httpsPost()
     String serverPath = serverName;
     http.begin(serverName, root_ca);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    int httpResponseCode = http.POST("temp=" + String(temp) + "&humidity=" + String(humidity));
+    int temp = aht20.getTemperature();
+    int humidity = aht20.getHumidity();
+
+    String tempString = String(temp);
+    String humidityString = String(humidity);
+    int httpResponseCode = http.POST("temp=" + tempString + "&humidity=" + humidityString);
 
     if (httpResponseCode > 0)
     {
@@ -156,9 +158,10 @@ void httpsGet()
   {
     HTTPClient http;
 
-    String getserver = "https://senior-app.azurewebsites.net/api/client";
+    String getserver = "https://senior-app.azurewebsites.net/api/medicine";
     http.begin(getserver);
     int httpResponseCode = http.GET();
+
     if (httpResponseCode > 0)
     {
       Serial.print("HTTP Response code: ");
@@ -174,32 +177,40 @@ void httpsGet()
         Serial.println(error.c_str());
         return;
       }
+          
       JsonArray rows = doc["result"]["rows"];
-      JsonObject row = rows[2];
-      const char *client_name = row["client_name"];
-      const char *CT1 = row["CT1"];
-      const char *CT2 = row["CT2"];
-      const char *CT3 = row["CT3"];
-      const char *CT4 = row["CT4"];
+      
+      // Process the first row (index 0, A)
+      JsonObject rowA = rows[1];
+      const char* md_set_A = rowA["md_set"];
+      int md_total_A = rowA["md_total"];
 
-      // for (JsonObject row : rows)
-      // {
-      //   const char *client_name = row["client_name"];
-      //   const char *CT1 = row["CT1"];
-      //   const char *CT2 = row["CT2"];
-      //   const char *CT3 = row["CT3"];
-      //   const char *CT4 = row["CT4"];
-      Serial.print("Client Name: ");
-      Serial.println(client_name);
-      Serial.print("CT1: ");
-      Serial.println(CT1);
-      Serial.print("CT2: ");
-      Serial.println(CT2);
-      Serial.print("CT3: ");
-      Serial.println(CT3);
-      Serial.print("CT4: ");
-      Serial.println(CT4);
-      // }
+      Serial.print("md_set_A = ");
+      Serial.println(md_set_A);
+      Serial.print("md_total_A = ");
+      Serial.println(md_total_A);
+
+      char md_total_A_str[10];
+      itoa(md_total_A, md_total_A_str, 10);
+
+      // Set text on LVGL label for A
+      lv_label_set_text(ui_A_total_, md_total_A_str);
+
+      // Process the second row (index 1, B)
+      JsonObject rowB = rows[0];
+      const char* md_set_B = rowB["md_set"];
+      int md_total_B = rowB["md_total"];
+
+      Serial.print("md_set_B = ");
+      Serial.println(md_set_B);
+      Serial.print("md_total_B = ");
+      Serial.println(md_total_B);
+
+      char md_total_B_str[10];
+      itoa(md_total_B, md_total_B_str, 10);
+
+      // Set text on LVGL label for B
+      lv_label_set_text(ui_B_total_, md_total_B_str);
     }
     else
     {
@@ -394,104 +405,38 @@ void setup()
 
 void loop()
 {
-  clockwise1();
-  clockwise2();
-  // unsigned long currentMillis = millis(); // เวลาปัจจุบัน
+  float temperature = aht20.getTemperature(); // Get temperature from sensor
+  float humidity = aht20.getHumidity();       // Get humidity from sensor
 
-  // float temperature = aht20.getTemperature(); // Get temperature from sensor
-  // float humidity = aht20.getHumidity();       // Get humidity from sensor
+  unsigned long currentMillis = millis(); // เวลาปัจจุบัน
 
-  // stopMotor1();
-
-  // if (currentMillis - lastGetTime >= 10)
-  // { // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
-  // bool val1 = digitalRead(digitalPin1);
-  // bool val2 = digitalRead(digitalPin2);
-
-  // if (val1 == 1 && !lastVal1)
-  // {
-  //   sentoutputsensorA();
-  //   lastVal1 = true;
-  // };
-
-  // if (val2 == 1 && !lastVal2) // ตรวจสอบว่า val2 เป็น 1 และยังไม่เคยส่งข้อมูลซ้ำ
-  // {
-  //   sentoutputsensorB();
-  //   lastVal2 = true; // บันทึกสถานะของ val2
-  // }
-
-  // if (val1 == 0 && lastVal1)
-  // {
-  //   lastVal1 = false;
-  // }
-
-  // if (val2 == 0 && lastVal2)
-  // {
-  //   lastVal2 = false;
-  // }
-
-
-  //   Serial.print("val1 = ");
-  //   Serial.println(val1);
-  //   Serial.print("val2 = ");
-  //   Serial.println(val2);        // เรียกใช้ฟังก์ชัน httpsGet()
-  //   lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
-
-  }
-
-
-
-  
-
-  // if (val1 == LOW && sensor1Triggered)
-  // {
-  //   clockwise1();
-  // }
-  // else
-  // {
-  //   stopMotor1();
-  //   sensor1Triggered = true;
-  // }
-
-  // if (val2 && sensor2Triggered)
-  // {
-  //   clockwise2();
-  // }
-  // else
-  // {
-  //   stopMotor2();
-  //   sensor2Triggered = true;
-  // }
-  // updateWiFiIcon();
-  // timenow();
-  // timeClient.update();
-  // unsigned long currentMillis = millis(); // เวลาปัจจุบัน
-  // // Display.loop();
-
-  // if (currentMillis - lastGetTime >= 30000)
+  // if (currentMillis - lastGetTime >= 10000)
   // {                              // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
   //   httpsGet();                  // เรียกใช้ฟังก์ชัน httpsGet()
   //   lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
   // }
   // Display.loop();
 
+  // if (currentMillis - lastConTime >= 10000)
+  // {
 
-// if (currentMillis - lastConTime >= 30000)
-// {
+  //   Serial.printf("Temperature: %.02f *C\n", temperature);
+  //   Serial.printf("Humidity: %.02f %%RH\n", humidity);
 
-//   Serial.printf("Temperature: %.02f *C\n", temperature);
-//   Serial.printf("Humidity: %.02f %%RH\n", humidity);
+  //   // Convert float values to strings
+  //   char tempStr[10];
+  //   char humiStr[10];
+  //   dtostrf(temperature, 5, 2, tempStr);
+  //   dtostrf(humidity, 5, 2, humiStr);
 
-//   // Convert float values to strings
-//   char tempStr[10];
-//   char humiStr[10];
-//   dtostrf(temperature, 5, 2, tempStr);
-//   dtostrf(humidity, 5, 2, humiStr);
+  //   lv_label_set_text(ui_temp_Label_value, tempStr); // Set temperature value on LVGL label
+  //   lv_label_set_text(ui_humi_Label_value, humiStr); // Set humidity value on LVGL label
+  //   httpsPost();                 // เรียกใช้ฟังก์ชัน httpscon()
 
-//   lv_label_set_text(ui_temp_Label_value, tempStr); // Set temperature value on LVGL label
-//   lv_label_set_text(ui_humi_Label_value, humiStr); // Set humidity value on LVGL label
-//   httpsPost();                 // เรียกใช้ฟังก์ชัน httpscon()
-//   lastConTime = currentMillis; // ปรับปรุงเวลาของการเชื่อมต่อล่าสุด
-// }
-
-// Display.loop(); // Keep GUI work
+  //   lastConTime = currentMillis; // ปรับปรุงเวลาของการเชื่อมต่อล่าสุด
+  // }
+  updateWiFiIcon();
+  timenow();
+  timeClient.update();
+  Display.loop(); // Keep GUI work
+}
