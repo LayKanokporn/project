@@ -10,6 +10,11 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <AHT20.h>
+#include <Audio.h>
+
+Audio audio;
+int longNotification = 0;
+int shortNotification = 1;
 
 AHT20 aht20;
 
@@ -203,13 +208,15 @@ void extractHourMinute(time_t time, int& hour, int& minute) {
 }
 
 // Function to parse time string (HH:MM) to total minutes
+// Function to parse time in HH:MM format to minutes
 int parseTimeToMinutes(const char* timeStr) {
-    int hour = atoi(strtok((char*)timeStr, ":"));
-    int minute = atoi(strtok(NULL, ":"));
-    return hour * 60 + minute;
+    int hours, minutes;
+    sscanf(timeStr, "%d:%d", &hours, &minutes);
+    return hours * 60 + minutes;
 }
 
-void displayClientCT1(const char* selectedClientName) {
+// Function to display client CT in HH:MM format
+void displayClientCT1(const char* selectedClientName, NTPClient& timeClient) {
     // ตรวจสอบสถานะ WiFi ก่อนที่จะดึงข้อมูล
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println("WiFi Disconnected");
@@ -246,7 +253,7 @@ void displayClientCT1(const char* selectedClientName) {
     for (int i = 0; i < rows.size(); i++) {
         JsonObject row = rows[i];
         const char* clientName = row["client_name"];
-        
+
         // ถ้าพบ client ที่เลือก
         if (strcmp(clientName, selectedClientName) == 0) {
             const char* CT1 = row["CT1"];
@@ -254,43 +261,51 @@ void displayClientCT1(const char* selectedClientName) {
             const char* CT3 = row["CT3"];
             const char* CT4 = row["CT4"];
 
+            // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
+            int currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
+              
             // แปลง CT1, CT2, CT3, CT4 เป็นนาที
             int ct1TotalMinutes = parseTimeToMinutes(CT1);
             int ct2TotalMinutes = parseTimeToMinutes(CT2);
             int ct3TotalMinutes = parseTimeToMinutes(CT3);
             int ct4TotalMinutes = parseTimeToMinutes(CT4);
 
-            // หาเวลาปัจจุบัน
-            time_t currentTime = time(nullptr);
-            int currentHour, currentMinute;
-            extractHourMinute(currentTime, currentHour, currentMinute);
-            int currentTotalMinutes = currentHour * 60 + currentMinute;
+            // แปลงเวลาจากนาทีกลับเป็น HH:MM
+            char ct1Formatted[6], ct2Formatted[6], ct3Formatted[6], ct4Formatted[6];
+            snprintf(ct1Formatted, sizeof(ct1Formatted), "%02d:%02d", ct1TotalMinutes / 60, ct1TotalMinutes % 60);
+            snprintf(ct2Formatted, sizeof(ct2Formatted), "%02d:%02d", ct2TotalMinutes / 60, ct2TotalMinutes % 60);
+            snprintf(ct3Formatted, sizeof(ct3Formatted), "%02d:%02d", ct3TotalMinutes / 60, ct3TotalMinutes % 60);
+            snprintf(ct4Formatted, sizeof(ct4Formatted), "%02d:%02d", ct4TotalMinutes / 60, ct4TotalMinutes % 60);
 
-            // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
-            if (currentTotalMinutes >= ct1TotalMinutes && currentTotalMinutes < ct2TotalMinutes) {
-                Serial.print("CT1: ");
-                Serial.println(CT1);
-            } else if (currentTotalMinutes >= ct2TotalMinutes && currentTotalMinutes < ct3TotalMinutes) {
-                Serial.print("CT2: ");
-                Serial.println(CT2);
-            } else if (currentTotalMinutes >= ct3TotalMinutes && currentTotalMinutes < ct4TotalMinutes) {
-                Serial.print("CT3: ");
-                Serial.println(CT3);
-            } else if (currentTotalMinutes >= ct4TotalMinutes && currentTotalMinutes < ct1TotalMinutes + 24 * 60) {
-                Serial.print("CT4: ");
-                Serial.println(CT4);
-            } else {
-                Serial.print("**CT4: ");
-                Serial.println(CT4);
-                Serial.println(currentTotalMinutes);
-                Serial.println(ct1TotalMinutes);
-            }
+            // แสดงผล CT1, CT2, CT3, CT4
+            Serial.println("CT1: " + String(ct1Formatted));
+            Serial.println("CT2: " + String(ct2Formatted));
+            Serial.println("CT3: " + String(ct3Formatted));
+            Serial.println("CT4: " + String(ct4Formatted));
+
+             // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามเงื่อนไข
+           if (currentTotalMinutes > ct1TotalMinutes && currentTotalMinutes < ct2TotalMinutes) {
+            Serial.println("*********CT2: " + String(ct2Formatted));
+            lv_label_set_text(ui_time__alarm, ct2Formatted);
+            
+} else if (currentTotalMinutes >= ct2TotalMinutes && currentTotalMinutes < ct3TotalMinutes) {
+            Serial.println("**********CT3: " + String(ct3Formatted));
+            lv_label_set_text(ui_time__alarm, ct3Formatted);
+} else if (currentTotalMinutes >= ct3TotalMinutes && currentTotalMinutes < ct4TotalMinutes) {
+            Serial.println("*********CT4: " + String(ct4Formatted));
+            lv_label_set_text(ui_time__alarm, ct4Formatted);
+} else {
+            Serial.println("***********CT1: " + String(ct1Formatted));
+            lv_label_set_text(ui_time__alarm, ct1Formatted);
+}
+
+
 
             // อัพเดท LVGL labels
-            lv_label_set_text(ui_time__in1A, CT1);
-            lv_label_set_text(ui_time__in2A, CT2);
-            lv_label_set_text(ui_time__in3A, CT3);
-            lv_label_set_text(ui_time__in4A, CT4);
+            lv_label_set_text(ui_time__in1A, ct1Formatted);
+            lv_label_set_text(ui_time__in2A, ct2Formatted);
+            lv_label_set_text(ui_time__in3A, ct3Formatted);
+            lv_label_set_text(ui_time__in4A, ct4Formatted);
             lv_label_set_text(ui_A_Label, clientName);
             lv_label_set_text(ui_clientalarm, clientName);
 
@@ -302,8 +317,6 @@ void displayClientCT1(const char* selectedClientName) {
     Serial.println("Selected client not found");
     http.end();
 }
-
-
 
 
 // ฟังก์ชันสำหรับเตรียม JSON payload และส่งไปยังเซิร์ฟเวอร์
@@ -331,6 +344,11 @@ void Sentclienttime() {
         // Send data to server
         int httpResponseCode = http.POST(jsonString);
 
+         Serial.print("******************Selected client_name: ");
+        Serial.println(client_name);
+         Serial.print("******************Selected timeStr: ");
+        Serial.println(timeStr);
+
         if (httpResponseCode > 0) {
             Serial.print("HTTP Response code: ");
             Serial.println(httpResponseCode);
@@ -356,7 +374,8 @@ static void client_click_handle(lv_event_t * e) {
     clientConfig(client_name);
     
     // แสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
-    displayClientCT1(client_name);
+    //displayClientCT(client_name);
+    displayClientCT1(client_name, timeClient);
     
 }
 
@@ -724,7 +743,6 @@ void stopMotor2()
 
 
 
-
 void setup()
 {
   Serial.begin(115200);
@@ -747,11 +765,13 @@ void setup()
   Touch.begin();
   Sound.begin();
   // Card.begin(); // uncomment if you want to Read/Write/Play/Load file in MicroSD Card
-
+  
   // Map peripheral to LVGL
   Display.useLVGL(); // Map display to LVGL
   Touch.useLVGL();   // Map touch screen to LVGL
   Sound.useLVGL();   // Map speaker to LVGL
+  
+
   // Card.useLVGL(); // Map MicroSD Card to LVGL File System
 
   Display.enableAutoSleep(120); // Auto off display if not touch in 2 min
@@ -784,26 +804,33 @@ void setup()
   lv_obj_add_event_cb(ui_P_refresh, client_click_handle, LV_EVENT_CLICKED, NULL);
   lv_obj_add_event_cb(ui_Button1, accept_click_handle, LV_EVENT_CLICKED, NULL);
   
+  
 }
 
 void loop()
 {
+  updateWiFiIcon();
+  timenow();
+  timeClient.update();
+
+
 
   unsigned long currentMillis = millis(); // เวลาปัจจุบัน
 
   if (currentMillis - lastGetTime >= 10000)
-  {                              // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
+  {             
+     // เรียกใช้งานฟังก์ชันสร้างเสียงเตือน
+
+               // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
     httpsGet2();                  // เรียกใช้ฟังก์ชัน httpsGet()
     //Getmedtotal();
-    //SentTempandHumi();
+    Sentclienttime();
     lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
   }
   // Display.loop();
 
   
   
-  updateWiFiIcon();
-  timenow();
-  timeClient.update();
+
   Display.loop(); // Keep GUI work
 }
