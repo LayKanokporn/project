@@ -35,10 +35,14 @@ extern lv_obj_t * ui_status_layout;
 extern lv_obj_t * ui_Label3;
 extern lv_obj_t * ui_temp_box;
 extern lv_obj_t * ui_temp_Label;
+extern lv_obj_t * ui_Container8;
 extern lv_obj_t * ui_temp_Label_value;
+extern lv_obj_t * ui_temp_Label_value1;
 extern lv_obj_t * ui_Humi_box;
 extern lv_obj_t * ui_humi_Label;
+extern lv_obj_t * ui_Container9;
 extern lv_obj_t * ui_humi_Label_value;
+extern lv_obj_t * ui_humi_Label_value1;
 extern lv_obj_t * ui_Container1;
 extern lv_obj_t * ui_P_name;
 extern lv_obj_t * ui_P_refresh;
@@ -59,9 +63,6 @@ extern lv_obj_t * ui_type_sele;
 void ui_event_type_a(lv_event_t * e);
 extern lv_obj_t * ui_type_a;
 extern lv_obj_t * ui_A_Label;
-void ui_event_type_b(lv_event_t * e);
-extern lv_obj_t * ui_type_b;
-extern lv_obj_t * ui_B_Label;
 extern lv_obj_t * ui_timer_bodyA;
 extern lv_obj_t * ui_r12_label3;
 extern lv_obj_t * ui_Checkbox1A;
@@ -75,57 +76,9 @@ extern lv_obj_t * ui_Checkbox4A;
 extern lv_obj_t * ui_t4;
 extern lv_obj_t * ui_time__in3A;
 extern lv_obj_t * ui_time__in4A;
-extern lv_obj_t * ui_Redo_box2;
-extern lv_obj_t * ui_Label19;
-extern lv_obj_t * ui_DayA_Container;
-extern lv_obj_t * ui_A1_enable;
-extern lv_obj_t * ui_Label20;
-extern lv_obj_t * ui_A2_enable;
-extern lv_obj_t * ui_Label21;
-extern lv_obj_t * ui_A3_enable;
-extern lv_obj_t * ui_Label22;
-extern lv_obj_t * ui_A4_enable;
-extern lv_obj_t * ui_Label31;
-extern lv_obj_t * ui_A5_enable;
-extern lv_obj_t * ui_Label32;
-extern lv_obj_t * ui_A6_enable;
-extern lv_obj_t * ui_Label33;
-extern lv_obj_t * ui_A7_enable;
-extern lv_obj_t * ui_Label34;
-extern lv_obj_t * ui_timer_bodyB;
-extern lv_obj_t * ui_r12_label1;
-extern lv_obj_t * ui_Checkbox1B;
-extern lv_obj_t * ui_Checkbox2B;
-extern lv_obj_t * ui_t1;
-extern lv_obj_t * ui_time__in1B;
-extern lv_obj_t * ui_time__in2B;
-extern lv_obj_t * ui_r12_label2;
-extern lv_obj_t * ui_Checkbox3B;
-extern lv_obj_t * ui_Checkbox4B;
-extern lv_obj_t * ui_t2;
-extern lv_obj_t * ui_time__in3B;
-extern lv_obj_t * ui_time__in4B;
-extern lv_obj_t * ui_Redo_box1;
-extern lv_obj_t * ui_Label23;
-extern lv_obj_t * ui_DayB_Container;
-extern lv_obj_t * ui_B1_enable;
-extern lv_obj_t * ui_Label24;
-extern lv_obj_t * ui_B2_enable;
-extern lv_obj_t * ui_Label25;
-extern lv_obj_t * ui_B3_enable;
-extern lv_obj_t * ui_Label26;
-extern lv_obj_t * ui_B4_enable;
-extern lv_obj_t * ui_Label27;
-extern lv_obj_t * ui_B5_enable;
-extern lv_obj_t * ui_Label28;
-extern lv_obj_t * ui_B6_enable;
-extern lv_obj_t * ui_Label29;
-extern lv_obj_t * ui_B7_enable;
-extern lv_obj_t * ui_Label30;
 extern lv_obj_t * ui_pill_Con;
 extern lv_obj_t * ui_Container5;
-extern lv_obj_t * ui_P_name2;
-extern lv_obj_t * ui_P_refresh2;
+extern lv_obj_t * ui_clientalarm;
 extern lv_obj_t * ui_Pill_alarm;
 extern lv_obj_t * ui_time__alarm;
 extern lv_obj_t * ui_A_alarm;
@@ -168,7 +121,7 @@ LV_IMG_DECLARE(ui_img_685164422);    // assets/home-icon.png
 LV_IMG_DECLARE(ui_img_alarm_png);    // assets/alarm.png
 LV_IMG_DECLARE(ui_img_pill_png);    // assets/pill.png
 LV_IMG_DECLARE(ui_img_setting_png);    // assets/setting.png
-LV_IMG_DECLARE(ui_img_312035399);    // assets/redo-arrow-icon.png
+LV_IMG_DECLARE(ui_img_1626888446);    // assets/check-mark-line-icon.png
 LV_IMG_DECLARE(ui_img_pickup_icon1_png);    // assets/pickup_icon1.png
 LV_IMG_DECLARE(ui_img_smartpill_png);    // assets/SmartPill.png
 LV_IMG_DECLARE(ui_img_1345796492);    // assets/globe-icon.png

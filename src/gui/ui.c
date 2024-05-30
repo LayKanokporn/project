@@ -29,10 +29,14 @@ lv_obj_t * ui_status_layout;
 lv_obj_t * ui_Label3;
 lv_obj_t * ui_temp_box;
 lv_obj_t * ui_temp_Label;
+lv_obj_t * ui_Container8;
 lv_obj_t * ui_temp_Label_value;
+lv_obj_t * ui_temp_Label_value1;
 lv_obj_t * ui_Humi_box;
 lv_obj_t * ui_humi_Label;
+lv_obj_t * ui_Container9;
 lv_obj_t * ui_humi_Label_value;
+lv_obj_t * ui_humi_Label_value1;
 lv_obj_t * ui_Container1;
 lv_obj_t * ui_P_name;
 lv_obj_t * ui_P_refresh;
@@ -53,9 +57,6 @@ lv_obj_t * ui_type_sele;
 void ui_event_type_a(lv_event_t * e);
 lv_obj_t * ui_type_a;
 lv_obj_t * ui_A_Label;
-void ui_event_type_b(lv_event_t * e);
-lv_obj_t * ui_type_b;
-lv_obj_t * ui_B_Label;
 lv_obj_t * ui_timer_bodyA;
 lv_obj_t * ui_r12_label3;
 lv_obj_t * ui_Checkbox1A;
@@ -69,57 +70,9 @@ lv_obj_t * ui_Checkbox4A;
 lv_obj_t * ui_t4;
 lv_obj_t * ui_time__in3A;
 lv_obj_t * ui_time__in4A;
-lv_obj_t * ui_Redo_box2;
-lv_obj_t * ui_Label19;
-lv_obj_t * ui_DayA_Container;
-lv_obj_t * ui_A1_enable;
-lv_obj_t * ui_Label20;
-lv_obj_t * ui_A2_enable;
-lv_obj_t * ui_Label21;
-lv_obj_t * ui_A3_enable;
-lv_obj_t * ui_Label22;
-lv_obj_t * ui_A4_enable;
-lv_obj_t * ui_Label31;
-lv_obj_t * ui_A5_enable;
-lv_obj_t * ui_Label32;
-lv_obj_t * ui_A6_enable;
-lv_obj_t * ui_Label33;
-lv_obj_t * ui_A7_enable;
-lv_obj_t * ui_Label34;
-lv_obj_t * ui_timer_bodyB;
-lv_obj_t * ui_r12_label1;
-lv_obj_t * ui_Checkbox1B;
-lv_obj_t * ui_Checkbox2B;
-lv_obj_t * ui_t1;
-lv_obj_t * ui_time__in1B;
-lv_obj_t * ui_time__in2B;
-lv_obj_t * ui_r12_label2;
-lv_obj_t * ui_Checkbox3B;
-lv_obj_t * ui_Checkbox4B;
-lv_obj_t * ui_t2;
-lv_obj_t * ui_time__in3B;
-lv_obj_t * ui_time__in4B;
-lv_obj_t * ui_Redo_box1;
-lv_obj_t * ui_Label23;
-lv_obj_t * ui_DayB_Container;
-lv_obj_t * ui_B1_enable;
-lv_obj_t * ui_Label24;
-lv_obj_t * ui_B2_enable;
-lv_obj_t * ui_Label25;
-lv_obj_t * ui_B3_enable;
-lv_obj_t * ui_Label26;
-lv_obj_t * ui_B4_enable;
-lv_obj_t * ui_Label27;
-lv_obj_t * ui_B5_enable;
-lv_obj_t * ui_Label28;
-lv_obj_t * ui_B6_enable;
-lv_obj_t * ui_Label29;
-lv_obj_t * ui_B7_enable;
-lv_obj_t * ui_Label30;
 lv_obj_t * ui_pill_Con;
 lv_obj_t * ui_Container5;
-lv_obj_t * ui_P_name2;
-lv_obj_t * ui_P_refresh2;
+lv_obj_t * ui_clientalarm;
 lv_obj_t * ui_Pill_alarm;
 lv_obj_t * ui_time__alarm;
 lv_obj_t * ui_A_alarm;
@@ -239,20 +192,7 @@ void ui_event_type_a(lv_event_t * e)
     lv_obj_t * target = lv_event_get_target(e);
     if(event_code == LV_EVENT_CLICKED) {
         _ui_state_modify(ui_type_a, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
-        _ui_state_modify(ui_type_b, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
-        _ui_flag_modify(ui_timer_bodyB, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
         _ui_flag_modify(ui_timer_bodyA, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
-    }
-}
-void ui_event_type_b(lv_event_t * e)
-{
-    lv_event_code_t event_code = lv_event_get_code(e);
-    lv_obj_t * target = lv_event_get_target(e);
-    if(event_code == LV_EVENT_CLICKED) {
-        _ui_flag_modify(ui_timer_bodyA, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
-        _ui_flag_modify(ui_timer_bodyB, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
-        _ui_state_modify(ui_type_b, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
-        _ui_state_modify(ui_type_a, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
     }
 }
 void ui_event_Button1(lv_event_t * e)

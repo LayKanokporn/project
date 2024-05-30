@@ -8,7 +8,7 @@ SET(SOURCES screens/ui_Index.c
     images/ui_img_alarm_png.c
     images/ui_img_pill_png.c
     images/ui_img_setting_png.c
-    images/ui_img_312035399.c
+    images/ui_img_1626888446.c
     images/ui_img_pickup_icon1_png.c
     images/ui_img_smartpill_png.c
     images/ui_img_1345796492.c

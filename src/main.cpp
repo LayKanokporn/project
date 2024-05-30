@@ -69,12 +69,283 @@ const char *root_ca =
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600);
 
-char client_name[50]; // ประกาศตัวแปรเก็บชื่อ client
+// ประกาศตัวแปร global สำหรับเก็บค่า client_name และ timeStr
+char client_name[50];
+char timeStr[9];
 
 void clientConfig(const char* client) {
     // ทำสิ่งที่ต้องการกับชื่อ client ที่ได้รับ เช่น ส่งผ่าน Serial
     Serial.print("******************Selected client: ");
     Serial.println(client);
+}
+
+// ฟังก์ชันสำหรับค้นหาและแสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
+void displayClientCT(const char* selectedClientName) {
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+
+        String getserver = "https://senior-app.azurewebsites.net/api/client";
+        http.begin(getserver);
+        int httpResponseCode = http.GET();
+        if (httpResponseCode > 0) {
+            String payload = http.getString();
+
+            DynamicJsonDocument doc(1024);
+            DeserializationError error = deserializeJson(doc, payload);
+            if (error) {
+                Serial.print(F("deserializeJson() failed: "));
+                Serial.println(error.c_str());
+                return;
+            }
+
+            JsonArray rows = doc["result"]["rows"];
+            // Loop through each client to find the selected client
+            for (int i = 0; i < rows.size(); i++) {
+                JsonObject row = rows[i];
+                const char* clientName = row["client_name"];
+                if (strcmp(clientName, selectedClientName) == 0) {
+                    // Found the selected client, now get CT1, CT2, CT3, CT4 values
+                    const char* CT1 = row["CT1"];
+                    const char* CT2 = row["CT2"];
+                    const char* CT3 = row["CT3"];
+                    const char* CT4 = row["CT4"];
+
+                    const char* T1 = row["T1"];
+                    const char* T2 = row["T2"];
+                    const char* T3 = row["T3"];
+                    const char* T4 = row["T4"];
+
+                     // Check if T1 is null
+                    if (T1 == NULL) {
+                        Serial.println("check1");
+                        lv_obj_add_state(ui_Checkbox1A, LV_STATE_CHECKED);
+                        lv_obj_add_state(ui_switch1_select1, LV_STATE_CHECKED);  
+                    } else {
+                        // Display T1 value
+                        Serial.print("T1: ");
+                        Serial.println(T1);
+                    }
+
+                    // Check if T2 is null
+                    if (T2 == NULL) {
+                        Serial.println("check2");
+                        lv_obj_add_state(ui_Checkbox2A, LV_STATE_CHECKED);
+                        lv_obj_add_state(ui_switch2_select1, LV_STATE_CHECKED);  
+                    } else {
+                        // Display T2 value
+                        Serial.print("T2: ");
+                        Serial.println(T2);
+                    }
+
+                    // Check if T3 is null
+                    if (T3 == NULL) {
+                        Serial.println("check3");
+                        lv_obj_add_state(ui_Checkbox3A, LV_STATE_CHECKED); 
+                        lv_obj_add_state(ui_switch3_select1, LV_STATE_CHECKED); 
+                    } else {
+                        // Display T3 value
+                        Serial.print("T3: ");
+                        Serial.println(T3);
+                    }
+
+                    // Check if T4 is null
+                    if (T4 == NULL) {
+                        Serial.println("check4");
+                        lv_obj_add_state(ui_Checkbox4A, LV_STATE_CHECKED);
+                        lv_obj_add_state(ui_switch4_select1, LV_STATE_CHECKED);  
+                    } else {
+                        // Display T4 value
+                        Serial.print("T4: ");
+                        Serial.println(T4);
+                    }
+
+                    // Display CT1, CT2, CT3, CT4 values
+                    Serial.print("CT1: ");
+                    Serial.println(CT1);
+                    Serial.print("CT2: ");
+                    Serial.println(CT2);
+                    Serial.print("CT3: ");
+                    Serial.println(CT3);
+                    Serial.print("CT4: ");
+                    Serial.println(CT4);
+
+                   
+                    // Display CT1, CT2, CT3, CT4 values on LVGL labels
+                    lv_label_set_text(ui_time__in1A, CT1);
+                    lv_label_set_text(ui_time__in2A, CT2);
+                    lv_label_set_text(ui_time__in3A, CT3);
+                    lv_label_set_text(ui_time__in4A, CT4);
+                    lv_label_set_text(ui_A_Label, clientName);
+                    lv_label_set_text(ui_clientalarm, clientName);
+
+
+                    // Exit loop once found the selected client
+                    break;
+
+                }
+            }
+        } else {
+            Serial.print("Error code: ");
+            Serial.println(httpResponseCode);
+        }
+        http.end();
+    } else {
+        Serial.println("WiFi Disconnected");
+    }
+}
+
+// Function to extract hour and minute from time_t structure
+void extractHourMinute(time_t time, int& hour, int& minute) {
+    struct tm *timeinfo;
+    timeinfo = localtime(&time);
+    hour = timeinfo->tm_hour;
+    minute = timeinfo->tm_min;
+}
+
+// Function to parse time string (HH:MM) to total minutes
+int parseTimeToMinutes(const char* timeStr) {
+    int hour = atoi(strtok((char*)timeStr, ":"));
+    int minute = atoi(strtok(NULL, ":"));
+    return hour * 60 + minute;
+}
+
+void displayClientCT1(const char* selectedClientName) {
+    // ตรวจสอบสถานะ WiFi ก่อนที่จะดึงข้อมูล
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WiFi Disconnected");
+        return;
+    }
+
+    // เริ่ม HTTP ร้องขอ
+    HTTPClient http;
+    String getserver = "https://senior-app.azurewebsites.net/api/client";
+    http.begin(getserver);
+
+    // ทำการ GET ข้อมูล
+    int httpResponseCode = http.GET();
+    if (httpResponseCode <= 0) {
+        Serial.print("Error code: ");
+        Serial.println(httpResponseCode);
+        http.end();
+        return;
+    }
+
+    // ดึงข้อมูล JSON และตรวจสอบ
+    String payload = http.getString();
+    DynamicJsonDocument doc(1024);
+    DeserializationError error = deserializeJson(doc, payload);
+    if (error) {
+        Serial.print(F("deserializeJson() failed: "));
+        Serial.println(error.c_str());
+        http.end();
+        return;
+    }
+
+    // หาข้อมูลของ client ที่เลือก
+    JsonArray rows = doc["result"]["rows"];
+    for (int i = 0; i < rows.size(); i++) {
+        JsonObject row = rows[i];
+        const char* clientName = row["client_name"];
+        
+        // ถ้าพบ client ที่เลือก
+        if (strcmp(clientName, selectedClientName) == 0) {
+            const char* CT1 = row["CT1"];
+            const char* CT2 = row["CT2"];
+            const char* CT3 = row["CT3"];
+            const char* CT4 = row["CT4"];
+
+            // แปลง CT1, CT2, CT3, CT4 เป็นนาที
+            int ct1TotalMinutes = parseTimeToMinutes(CT1);
+            int ct2TotalMinutes = parseTimeToMinutes(CT2);
+            int ct3TotalMinutes = parseTimeToMinutes(CT3);
+            int ct4TotalMinutes = parseTimeToMinutes(CT4);
+
+            // หาเวลาปัจจุบัน
+            time_t currentTime = time(nullptr);
+            int currentHour, currentMinute;
+            extractHourMinute(currentTime, currentHour, currentMinute);
+            int currentTotalMinutes = currentHour * 60 + currentMinute;
+
+            // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
+            if (currentTotalMinutes >= ct1TotalMinutes && currentTotalMinutes < ct2TotalMinutes) {
+                Serial.print("CT1: ");
+                Serial.println(CT1);
+            } else if (currentTotalMinutes >= ct2TotalMinutes && currentTotalMinutes < ct3TotalMinutes) {
+                Serial.print("CT2: ");
+                Serial.println(CT2);
+            } else if (currentTotalMinutes >= ct3TotalMinutes && currentTotalMinutes < ct4TotalMinutes) {
+                Serial.print("CT3: ");
+                Serial.println(CT3);
+            } else if (currentTotalMinutes >= ct4TotalMinutes && currentTotalMinutes < ct1TotalMinutes + 24 * 60) {
+                Serial.print("CT4: ");
+                Serial.println(CT4);
+            } else {
+                Serial.print("**CT4: ");
+                Serial.println(CT4);
+                Serial.println(currentTotalMinutes);
+                Serial.println(ct1TotalMinutes);
+            }
+
+            // อัพเดท LVGL labels
+            lv_label_set_text(ui_time__in1A, CT1);
+            lv_label_set_text(ui_time__in2A, CT2);
+            lv_label_set_text(ui_time__in3A, CT3);
+            lv_label_set_text(ui_time__in4A, CT4);
+            lv_label_set_text(ui_A_Label, clientName);
+            lv_label_set_text(ui_clientalarm, clientName);
+
+            http.end();
+            return; // ออกจากฟังก์ชั่นเมื่อพบ client ที่เลือก
+        }
+    }
+
+    Serial.println("Selected client not found");
+    http.end();
+}
+
+
+
+
+// ฟังก์ชันสำหรับเตรียม JSON payload และส่งไปยังเซิร์ฟเวอร์
+void Sentclienttime() {
+    // Your Domain name with URL path or IP address with path
+    String serverName = "https://senior-app.azurewebsites.net/api/client/eating";
+  
+    // Check WiFi connection status
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+
+        String serverPath = serverName;
+        http.begin(serverName, root_ca);
+        http.addHeader("Content-Type", "application/json");
+
+        // Prepare JSON payload
+        StaticJsonDocument<200> jsonPayload;
+        jsonPayload["client_name"] = client_name;
+        jsonPayload["timeeating"] = timeStr;
+
+        // Serialize JSON payload
+        String jsonString;
+        serializeJson(jsonPayload, jsonString);
+
+        // Send data to server
+        int httpResponseCode = http.POST(jsonString);
+
+        if (httpResponseCode > 0) {
+            Serial.print("HTTP Response code: ");
+            Serial.println(httpResponseCode);
+            String payload = http.getString();
+            Serial.println(payload);
+        } else {
+            Serial.print("Error code: ");
+            Serial.println(httpResponseCode);
+        }
+
+        // Free resources
+        http.end();
+    } else {
+        Serial.println("WiFi Disconnected");
+    }
 }
 
 static void client_click_handle(lv_event_t * e) {
@@ -83,7 +354,28 @@ static void client_click_handle(lv_event_t * e) {
     
     // เรียกใช้งานฟังก์ชัน clientConfig() เพื่อประมวลผล
     clientConfig(client_name);
+    
+    // แสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
+    displayClientCT1(client_name);
+    
 }
+
+static void accept_click_handle(lv_event_t * e) {
+    // Get current time
+    int hourNow = timeClient.getHours();
+    int minuteNow = timeClient.getMinutes();
+
+    // Format the time string
+    snprintf(timeStr, sizeof(timeStr), "%02d:%02d", hourNow, minuteNow);
+
+    // Send time over Serial
+    Serial.print("****************Current time (HH:MM): ");
+    Serial.println(timeStr);
+    
+    // ส่งข้อมูล client_name และ timeStr ไปยังฟังก์ชัน Sentclienttime()
+    Sentclienttime();
+}
+
 
 // ฟังก์ชันสำหรับดึงข้อมูลจากเซิร์ฟเวอร์และแสดงข้อมูล client ใน dropdown
 void httpsGet2() {
@@ -127,6 +419,8 @@ void httpsGet2() {
 }
 
 
+
+
 void timenow()
 {
   static unsigned long lastTimeUpdate = 0;
@@ -143,8 +437,11 @@ void timenow()
     char timeStr[9]; // "HH:MM:SS\0"
     snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d", hourNow, minuteNow, secondNow);
     lv_label_set_text(ui_time_Label, timeStr);
+    
   }
 }
+
+
 
 void updateWiFiIcon()
 {
@@ -170,7 +467,7 @@ void updateWiFiIcon()
   }
 }
 
-void httpsPost()
+void SentTempandHumi()
 {
   // Your Domain name with URL path or IP address with path
   String serverName = "https://senior-app.azurewebsites.net/api/temp/create";
@@ -182,9 +479,21 @@ void httpsPost()
     String serverPath = serverName;
     http.begin(serverName, root_ca);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    int temp = aht20.getTemperature();
-    int humidity = aht20.getHumidity();
+    float temp = aht20.getTemperature();
+    float humidity = aht20.getHumidity();
 
+
+    // Convert temperature and humidity to strings
+    char tempStr[10];
+    char humiStr[10];
+    dtostrf(temp, 5, 2, tempStr);
+    dtostrf(humidity, 5, 2, humiStr);
+
+    // Set temperature and humidity values on LVGL labels
+    lv_label_set_text(ui_temp_Label_value, tempStr); // Set temperature value on LVGL label
+    lv_label_set_text(ui_humi_Label_value, humiStr); // Set humidity value on LVGL label
+
+    // Send data to server
     String tempString = String(temp);
     String humidityString = String(humidity);
     int httpResponseCode = http.POST("temp=" + tempString + "&humidity=" + humidityString);
@@ -210,7 +519,10 @@ void httpsPost()
   }
 }
 
-void httpsGet()
+
+
+
+void Getmedtotal()
 {
   if (WiFi.status() == WL_CONNECTED)
   {
@@ -253,6 +565,8 @@ void httpsGet()
 
       // Set text on LVGL label for A
       lv_label_set_text(ui_A_total_, md_total_A_str);
+      lv_label_set_text(ui_A_total_lebel, md_set_A);
+      lv_label_set_text(ui_A_alarm, md_set_A);
 
       // Process the second row (index 1, B)
       JsonObject rowB = rows[0];
@@ -269,6 +583,9 @@ void httpsGet()
 
       // Set text on LVGL label for B
       lv_label_set_text(ui_B_total_, md_total_B_str);
+      lv_label_set_text(ui_B_total_lebel, md_set_B);
+      lv_label_set_text(ui_B_alarm, md_set_B);
+      
     }
     else
     {
@@ -404,6 +721,10 @@ void stopMotor2()
   digitalWrite(motor2Pin4, LOW);
 }
 
+
+
+
+
 void setup()
 {
   Serial.begin(115200);
@@ -460,42 +781,27 @@ void setup()
       ;
   }
   Serial.println(F("AHT20 OK"));
-  lv_obj_add_event_cb(ui_P_name, client_click_handle, LV_EVENT_CLICKED, NULL);
-
+  lv_obj_add_event_cb(ui_P_refresh, client_click_handle, LV_EVENT_CLICKED, NULL);
+  lv_obj_add_event_cb(ui_Button1, accept_click_handle, LV_EVENT_CLICKED, NULL);
+  
 }
 
 void loop()
 {
-  float temperature = aht20.getTemperature(); // Get temperature from sensor
-  float humidity = aht20.getHumidity();       // Get humidity from sensor
 
   unsigned long currentMillis = millis(); // เวลาปัจจุบัน
 
-  // if (currentMillis - lastGetTime >= 30000)
-  // {                              // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
-  //   httpsGet();                  // เรียกใช้ฟังก์ชัน httpsGet()
-  //   lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
-  // }
+  if (currentMillis - lastGetTime >= 10000)
+  {                              // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
+    httpsGet2();                  // เรียกใช้ฟังก์ชัน httpsGet()
+    //Getmedtotal();
+    //SentTempandHumi();
+    lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
+  }
   // Display.loop();
 
-  // if (currentMillis - lastConTime >= 10000)
-  // {
-
-  //   Serial.printf("Temperature: %.02f *C\n", temperature);
-  //   Serial.printf("Humidity: %.02f %%RH\n", humidity);
-
-  //   // Convert float values to strings
-  //   char tempStr[10];
-  //   char humiStr[10];
-  //   dtostrf(temperature, 5, 2, tempStr);
-  //   dtostrf(humidity, 5, 2, humiStr);
-
-  //   lv_label_set_text(ui_temp_Label_value, tempStr); // Set temperature value on LVGL label
-  //   lv_label_set_text(ui_humi_Label_value, humiStr); // Set humidity value on LVGL label
-  //   httpsPost();                 // เรียกใช้ฟังก์ชัน httpscon()
-
-  //   lastConTime = currentMillis; // ปรับปรุงเวลาของการเชื่อมต่อล่าสุด
-  // }
+  
+  
   updateWiFiIcon();
   timenow();
   timeClient.update();
