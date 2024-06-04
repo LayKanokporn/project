@@ -29,12 +29,12 @@ lv_obj_t * ui_status_layout;
 lv_obj_t * ui_Label3;
 lv_obj_t * ui_temp_box;
 lv_obj_t * ui_temp_Label;
-lv_obj_t * ui_Container8;
+lv_obj_t * ui_Container9;
 lv_obj_t * ui_temp_Label_value;
 lv_obj_t * ui_temp_Label_value1;
 lv_obj_t * ui_Humi_box;
 lv_obj_t * ui_humi_Label;
-lv_obj_t * ui_Container9;
+lv_obj_t * ui_Container8;
 lv_obj_t * ui_humi_Label_value;
 lv_obj_t * ui_humi_Label_value1;
 lv_obj_t * ui_Container1;
@@ -54,7 +54,6 @@ lv_obj_t * ui_switch_Con;
 lv_obj_t * ui_pill_type_box;
 lv_obj_t * ui_Label5;
 lv_obj_t * ui_type_sele;
-void ui_event_type_a(lv_event_t * e);
 lv_obj_t * ui_type_a;
 lv_obj_t * ui_A_Label;
 lv_obj_t * ui_timer_bodyA;
@@ -184,15 +183,6 @@ void ui_event_Setting_btn(lv_event_t * e)
         _ui_state_modify(ui_Home_btn, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
         _ui_state_modify(ui_switch_btn, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
         _ui_state_modify(ui_Pill_btn, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
-    }
-}
-void ui_event_type_a(lv_event_t * e)
-{
-    lv_event_code_t event_code = lv_event_get_code(e);
-    lv_obj_t * target = lv_event_get_target(e);
-    if(event_code == LV_EVENT_CLICKED) {
-        _ui_state_modify(ui_type_a, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
-        _ui_flag_modify(ui_timer_bodyA, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
     }
 }
 void ui_event_Button1(lv_event_t * e)

@@ -13,8 +13,6 @@
 #include <Audio.h>
 
 Audio audio;
-int longNotification = 0;
-int shortNotification = 1;
 
 AHT20 aht20;
 
@@ -22,16 +20,15 @@ const char *ssid = "Layya";
 const char *password = "Infinity";
 
 unsigned long lastGetTime = 0;
-unsigned long lastConTime = 0;
 
 bool isPostedA = false;
 bool isPostedB = false;
 
 // motorO
-int motor1Pin1 = 1;           // Blue   - 28BYJ48 pin 1
-int motor1Pin2 = 2;           // Pink   - 28BYJ48 pin 2
-int motor1Pin3 = 7;           // Yellow - 28BYJ48 pin 3
-int motor1Pin4 = 6;           // Orange - 28BYJ48 pin 4
+int motor1Pin1 = 1;            // Blue   - 28BYJ48 pin 1
+int motor1Pin2 = 2;            // Pink   - 28BYJ48 pin 2
+int motor1Pin3 = 7;            // Yellow - 28BYJ48 pin 3
+int motor1Pin4 = 6;            // Orange - 28BYJ48 pin 4
 int motor1Speed = 4;           // Variable to set stepper speed
 int digitalPin1 = 38;          // Declare variable to represent digital pin 4
 int threshold1 = 20;           // Threshold value for sensor
@@ -42,10 +39,10 @@ int stacksensorB = 3;
 // motorcap
 int motor2Pin1 = 42;           // Blue   - 28BYJ48 pin 1
 int motor2Pin2 = 41;           // Pink   - 28BYJ48 pin 2
-int motor2Pin3 = 40;            // Yellow - 28BYJ48 pin 3
-int motor2Pin4 = 39;            // Orange - 28BYJ48 pin 4
+int motor2Pin3 = 40;           // Yellow - 28BYJ48 pin 3
+int motor2Pin4 = 39;           // Orange - 28BYJ48 pin 4
 int motor2Speed = 4;           // Variable to set stepper speed
-int digitalPin2 = 8;          // Declare variable to represent digital pin 4
+int digitalPin2 = 8;           // Declare variable to represent digital pin 4
 int threshold2 = 20;           // Threshold value for sensor
 bool sensor2Triggered = false; // Flag variable to track sensor state
 
@@ -80,158 +77,16 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600);
 char client_name[50];
 char timeStr[9];
 
-void clientConfig(const char *client)
-{
-  // ทำสิ่งที่ต้องการกับชื่อ client ที่ได้รับ เช่น ส่งผ่าน Serial
-  Serial.print("******************Selected client: ");
-  Serial.println(client);
-}
+const char *selectedClientName; // ประกาศตัวแปร selectedClientName เป็น global
 
-// ฟังก์ชันสำหรับค้นหาและแสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
-void displayClientCT(const char *selectedClientName)
-{
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    HTTPClient http;
+ int currentTotalMinutes; // ประกาศตัวแปร currentTotalMinutes สำหรับเก็บค่าเวลาปัจจุบัน
+  int ct1TotalMinutes;     // ประกาศตัวแปร ct1TotalMinutes สำหรับเก็บค่า CT1
+  int ct2TotalMinutes;     // ประกาศตัวแปร ct2TotalMinutes สำหรับเก็บค่า CT2
+  int ct3TotalMinutes;     // ประกาศตัวแปร ct3TotalMinutes สำหรับเก็บค่า CT3
+  int ct4TotalMinutes;     // ประกาศตัวแปร ct4TotalMinutes สำหรับเก็บค่า CT4
 
-    String getserver = "https://senior-app.azurewebsites.net/api/client";
-    http.begin(getserver);
-    int httpResponseCode = http.GET();
-    if (httpResponseCode > 0)
-    {
-      String payload = http.getString();
-
-      DynamicJsonDocument doc(1024);
-      DeserializationError error = deserializeJson(doc, payload);
-      if (error)
-      {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.c_str());
-        return;
-      }
-
-      JsonArray rows = doc["result"]["rows"];
-      // Loop through each client to find the selected client
-      for (int i = 0; i < rows.size(); i++)
-      {
-        JsonObject row = rows[i];
-        const char *clientName = row["client_name"];
-        if (strcmp(clientName, selectedClientName) == 0)
-        {
-          // Found the selected client, now get CT1, CT2, CT3, CT4 values
-          const char *CT1 = row["CT1"];
-          const char *CT2 = row["CT2"];
-          const char *CT3 = row["CT3"];
-          const char *CT4 = row["CT4"];
-
-          const char *T1 = row["T1"];
-          const char *T2 = row["T2"];
-          const char *T3 = row["T3"];
-          const char *T4 = row["T4"];
-
-          // Check if T1 is null
-          if (T1 == NULL)
-          {
-            Serial.println("check1");
-            lv_obj_add_state(ui_Checkbox1A, LV_STATE_CHECKED);
-            lv_obj_add_state(ui_switch1_select1, LV_STATE_CHECKED);
-          }
-          else
-          {
-            // Display T1 value
-            Serial.print("T1: ");
-            Serial.println(T1);
-          }
-
-          // Check if T2 is null
-          if (T2 == NULL)
-          {
-            Serial.println("check2");
-            lv_obj_add_state(ui_Checkbox2A, LV_STATE_CHECKED);
-            lv_obj_add_state(ui_switch2_select1, LV_STATE_CHECKED);
-          }
-          else
-          {
-            // Display T2 value
-            Serial.print("T2: ");
-            Serial.println(T2);
-          }
-
-          // Check if T3 is null
-          if (T3 == NULL)
-          {
-            Serial.println("check3");
-            lv_obj_add_state(ui_Checkbox3A, LV_STATE_CHECKED);
-            lv_obj_add_state(ui_switch3_select1, LV_STATE_CHECKED);
-          }
-          else
-          {
-            // Display T3 value
-            Serial.print("T3: ");
-            Serial.println(T3);
-          }
-
-          // Check if T4 is null
-          if (T4 == NULL)
-          {
-            Serial.println("check4");
-            lv_obj_add_state(ui_Checkbox4A, LV_STATE_CHECKED);
-            lv_obj_add_state(ui_switch4_select1, LV_STATE_CHECKED);
-          }
-          else
-          {
-            // Display T4 value
-            Serial.print("T4: ");
-            Serial.println(T4);
-          }
-
-          // Display CT1, CT2, CT3, CT4 values
-          Serial.print("CT1: ");
-          Serial.println(CT1);
-          Serial.print("CT2: ");
-          Serial.println(CT2);
-          Serial.print("CT3: ");
-          Serial.println(CT3);
-          Serial.print("CT4: ");
-          Serial.println(CT4);
-
-          // Display CT1, CT2, CT3, CT4 values on LVGL labels
-          lv_label_set_text(ui_time__in1A, CT1);
-          lv_label_set_text(ui_time__in2A, CT2);
-          lv_label_set_text(ui_time__in3A, CT3);
-          lv_label_set_text(ui_time__in4A, CT4);
-          lv_label_set_text(ui_A_Label, clientName);
-          lv_label_set_text(ui_clientalarm, clientName);
-
-          // Exit loop once found the selected client
-          break;
-        }
-      }
-    }
-    else
-    {
-      Serial.print("Error code: ");
-      Serial.println(httpResponseCode);
-    }
-    http.end();
-  }
-  else
-  {
-    Serial.println("WiFi Disconnected");
-  }
-}
-
-// Function to extract hour and minute from time_t structure
-void extractHourMinute(time_t time, int &hour, int &minute)
-{
-  struct tm *timeinfo;
-  timeinfo = localtime(&time);
-  hour = timeinfo->tm_hour;
-  minute = timeinfo->tm_min;
-}
 
 // Function to parse time string (HH:MM) to total minutes
-// Function to parse time in HH:MM format to minutes
 int parseTimeToMinutes(const char *timeStr)
 {
   int hours, minutes;
@@ -240,7 +95,9 @@ int parseTimeToMinutes(const char *timeStr)
 }
 
 // Function to display client CT in HH:MM format
-void displayClientCT1(const char *selectedClientName, NTPClient &timeClient)
+// ฟังก์ชันสำหรับค้นหาและแสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
+// Function to display client CT in HH:MM format
+void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int &ct1TotalMinutes, int &ct2TotalMinutes, int &ct3TotalMinutes, int &ct4TotalMinutes)
 {
   // ตรวจสอบสถานะ WiFi ก่อนที่จะดึงข้อมูล
   if (WiFi.status() != WL_CONNECTED)
@@ -291,6 +148,83 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient)
       const char *CT3 = row["CT3"];
       const char *CT4 = row["CT4"];
 
+      const char *T1 = row["T1"];
+      const char *T2 = row["T2"];
+      const char *T3 = row["T3"];
+      const char *T4 = row["T4"];
+
+      // Check if T1 is null
+      if (T1 == NULL)
+      {
+        Serial.println("check1");
+        lv_obj_add_state(ui_Checkbox1A, LV_STATE_CHECKED);
+        lv_obj_add_state(ui_switch1_select1, LV_STATE_CHECKED);
+      }
+      else
+      {
+        // Display T1 value
+        Serial.print("T1: ");
+        Serial.println(T1);
+      }
+
+      // Check if T2 is null
+      if (T2 == NULL)
+      {
+        Serial.println("check2");
+        lv_obj_add_state(ui_Checkbox2A, LV_STATE_CHECKED);
+        lv_obj_add_state(ui_switch2_select1, LV_STATE_CHECKED);
+      }
+      else
+      {
+        // Display T2 value
+        Serial.print("T2: ");
+        Serial.println(T2);
+      }
+
+      // Check if T3 is null
+      if (T3 == NULL)
+      {
+        Serial.println("check3");
+        lv_obj_add_state(ui_Checkbox3A, LV_STATE_CHECKED);
+        lv_obj_add_state(ui_switch3_select1, LV_STATE_CHECKED);
+      }
+      else
+      {
+        // Display T3 value
+        Serial.print("T3: ");
+        Serial.println(T3);
+      }
+
+      // Check if T4 is null
+      if (T4 == NULL)
+      {
+        Serial.println("check4");
+        lv_obj_add_state(ui_Checkbox4A, LV_STATE_CHECKED);
+        lv_obj_add_state(ui_switch4_select1, LV_STATE_CHECKED);
+      }
+      else
+      {
+
+        // Display T4 value
+        Serial.print("T4: ");
+        Serial.println(T4);
+      }
+      // ทำสิ่งที่ต้องการกับชื่อ client ที่ได้รับ เช่น ส่งผ่าน Serial
+      Serial.print("******************Selected client: ");
+      Serial.println(selectedClientName);
+
+      // Display CT1, CT2, CT3, CT4 values
+      Serial.print("CT1: ");
+      Serial.println(CT1);
+      Serial.print("CT2: ");
+      Serial.println(CT2);
+      Serial.print("CT3: ");
+      Serial.println(CT3);
+      Serial.print("CT4: ");
+      Serial.println(CT4);
+
+      Serial.println("******************************************************");
+
       // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
       int currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
 
@@ -306,12 +240,6 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient)
       snprintf(ct2Formatted, sizeof(ct2Formatted), "%02d:%02d", ct2TotalMinutes / 60, ct2TotalMinutes % 60);
       snprintf(ct3Formatted, sizeof(ct3Formatted), "%02d:%02d", ct3TotalMinutes / 60, ct3TotalMinutes % 60);
       snprintf(ct4Formatted, sizeof(ct4Formatted), "%02d:%02d", ct4TotalMinutes / 60, ct4TotalMinutes % 60);
-
-      // แสดงผล CT1, CT2, CT3, CT4
-      Serial.println("CT1: " + String(ct1Formatted));
-      Serial.println("CT2: " + String(ct2Formatted));
-      Serial.println("CT3: " + String(ct3Formatted));
-      Serial.println("CT4: " + String(ct4Formatted));
 
       // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามเงื่อนไข
       if (currentTotalMinutes > ct1TotalMinutes && currentTotalMinutes < ct2TotalMinutes)
@@ -336,10 +264,10 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient)
       }
 
       // อัพเดท LVGL labels
-      lv_label_set_text(ui_time__in1A, ct1Formatted);
-      lv_label_set_text(ui_time__in2A, ct2Formatted);
-      lv_label_set_text(ui_time__in3A, ct3Formatted);
-      lv_label_set_text(ui_time__in4A, ct4Formatted);
+      lv_label_set_text(ui_time__in1A, CT1);
+      lv_label_set_text(ui_time__in2A, CT2);
+      lv_label_set_text(ui_time__in3A, CT3);
+      lv_label_set_text(ui_time__in4A, CT4);
       lv_label_set_text(ui_A_Label, clientName);
       lv_label_set_text(ui_clientalarm, clientName);
 
@@ -353,7 +281,7 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient)
 }
 
 // ฟังก์ชันสำหรับเตรียม JSON payload และส่งไปยังเซิร์ฟเวอร์
-void Sentclienttime()
+void Postclienttime()
 {
   // Your Domain name with URL path or IP address with path
   String serverName = "https://senior-app.azurewebsites.net/api/client/eating";
@@ -411,12 +339,8 @@ static void client_click_handle(lv_event_t *e)
   // ดึงชื่อ client ที่เลือก
   lv_dropdown_get_selected_str(ui_P_name, client_name, sizeof(client_name));
 
-  // เรียกใช้งานฟังก์ชัน clientConfig() เพื่อประมวลผล
-  clientConfig(client_name);
-
   // แสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
-  // displayClientCT(client_name);
-  displayClientCT1(client_name, timeClient);
+  displayClientCT1(client_name, timeClient, ct1TotalMinutes, ct2TotalMinutes, ct3TotalMinutes, ct4TotalMinutes);
 }
 
 static void accept_click_handle(lv_event_t *e)
@@ -431,18 +355,21 @@ static void accept_click_handle(lv_event_t *e)
   // Send time over Serial
   Serial.print("****************Current time (HH:MM): ");
   Serial.println(timeStr);
+  Sound.useLVGL();
+  lv_obj_set_style_bg_color(ui_Button1, lv_color_hex(0xF2A3F5), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_bg_opa(ui_Button1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-   stacksensorA = 0;   // Reset first sensor state
-   stacksensorB = 0;   // Reset second sensor state
-   isPostedA = false;  // Reset flag for sensor A
-   isPostedB = false;  // Reset flag for sensor B
+  stacksensorA = 0;  // Reset first sensor state
+  stacksensorB = 0;  // Reset second sensor state
+  isPostedA = false; // Reset flag for sensor A
+  isPostedB = false; // Reset flag for sensor B
 
   // ส่งข้อมูล client_name และ timeStr ไปยังฟังก์ชัน Sentclienttime()
-  Sentclienttime();
+  Postclienttime();
 }
 
 // ฟังก์ชันสำหรับดึงข้อมูลจากเซิร์ฟเวอร์และแสดงข้อมูล client ใน dropdown
-void httpsGet2()
+void Getclient()
 {
   if (WiFi.status() == WL_CONNECTED)
   {
@@ -534,7 +461,7 @@ void updateWiFiIcon()
   }
 }
 
-void SentTempandHumi()
+void PostTempandHumi()
 {
   // Your Domain name with URL path or IP address with path
   String serverName = "https://senior-app.azurewebsites.net/api/temp/create";
@@ -559,9 +486,15 @@ void SentTempandHumi()
     lv_label_set_text(ui_temp_Label_value, tempStr); // Set temperature value on LVGL label
     lv_label_set_text(ui_humi_Label_value, humiStr); // Set humidity value on LVGL label
 
+    // Convert temperature and humidity to integer values (multiplying by 100)
+    int intTemp = temp;
+    int intHumidity = humidity;
+
+    // Convert integers to strings
+    String tempString = String(intTemp);
+    String humidityString = String(intHumidity);
+
     // Send data to server
-    String tempString = String(temp);
-    String humidityString = String(humidity);
     int httpResponseCode = http.POST("temp=" + tempString + "&humidity=" + humidityString);
 
     if (httpResponseCode > 0)
@@ -614,7 +547,7 @@ void Getmedtotal()
       JsonArray rows = doc["result"]["rows"];
 
       // Process the first row (index 0, A)
-      JsonObject rowA = rows[1];
+      JsonObject rowA = rows[0];
       const char *md_set_A = rowA["md_set"];
       int md_total_A = rowA["md_total"];
 
@@ -632,7 +565,7 @@ void Getmedtotal()
       lv_label_set_text(ui_A_alarm, md_set_A);
 
       // Process the second row (index 1, B)
-      JsonObject rowB = rows[0];
+      JsonObject rowB = rows[1];
       const char *md_set_B = rowB["md_set"];
       int md_total_B = rowB["md_total"];
 
@@ -715,7 +648,6 @@ void postsensorA()
   http.end();
   stacksensorA = 3;
 }
-
 void postsensorB()
 {
   String serverName = "https://senior-app.azurewebsites.net/api/medicine/balance";
@@ -749,7 +681,6 @@ void postsensorB()
   http.end();
   stacksensorB = 3;
 }
-
 void clockwise2()
 {
   digitalWrite(motor2Pin1, HIGH);
@@ -792,7 +723,6 @@ void stopMotor2()
   digitalWrite(motor2Pin4, LOW);
 }
 
-
 void setup()
 {
   Serial.begin(115200);
@@ -814,19 +744,23 @@ void setup()
   Display.begin(0); // rotation number 0
   Touch.begin();
   Sound.begin();
-  // Card.begin(); // uncomment if you want to Read/Write/Play/Load file in MicroSD Card
+  Card.begin(); // uncomment if you want to Read/Write/Play/Load file in MicroSD Card
 
+  audio.setVolume(15);
   // Map peripheral to LVGL
   Display.useLVGL(); // Map display to LVGL
   Touch.useLVGL();   // Map touch screen to LVGL
-  Sound.useLVGL();   // Map speaker to LVGL
+  // Sound.useLVGL();   // Map speaker to LVGL
 
-  // Card.useLVGL(); // Map MicroSD Card to LVGL File System
+  Card.useLVGL(); // Map MicroSD Card to LVGL File System
 
   Display.enableAutoSleep(120); // Auto off display if not touch in 2 min
 
   // Add load your UI function
   ui_init();
+
+  lv_obj_add_event_cb(ui_P_refresh, [](lv_event_t *e)
+                      { audio.connecttoFS(Card, "/audio/sound.mp3"); }, LV_EVENT_CLICKED, NULL);
 
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
@@ -843,13 +777,14 @@ void setup()
   Serial.println(F("AHT20+BMP280 test"));
 
   Wire.begin();
-  // if (aht20.begin() == false)
-  // {
-  //   Serial.println("AHT20 not detected. Please check wiring. Freezing.");
-  //   while (1)
-  //     ;
-  // }
+  if (aht20.begin() == false)
+  {
+    Serial.println("AHT20 not detected. Please check wiring. Freezing.");
+    while (1)
+      ;
+  }
   Serial.println(F("AHT20 OK"));
+
   lv_obj_add_event_cb(ui_P_refresh, client_click_handle, LV_EVENT_CLICKED, NULL);
   lv_obj_add_event_cb(ui_Button1, accept_click_handle, LV_EVENT_CLICKED, NULL);
 }
@@ -859,7 +794,6 @@ void loop()
   updateWiFiIcon();
   timenow();
   timeClient.update();
-
   unsigned long currentMillis = millis(); // เวลาปัจจุบัน
 
   bool val1 = digitalRead(digitalPin1);
@@ -868,8 +802,6 @@ void loop()
   Serial.println(val1);
   Serial.print("val2 = ");
   Serial.println(val2);
- 
-  
 
   if (stacksensorA == 0) {
     clockwise1();
@@ -897,19 +829,16 @@ void loop()
     stopMotor2();
   }
 
-
-  if (currentMillis - lastGetTime >= 10000)
+  if (currentMillis - lastGetTime >= 30000)
   {
-    // เรียกใช้งานฟังก์ชันสร้างเสียงเตือน
-
-    // ทุก 1 ชั่วโมง (3600000 มิลลิวินาที)
-    httpsGet2(); // เรียกใช้ฟังก์ชัน httpsGet()
+   
+    // ทุก5 นาที
+    Getclient(); // เรียกใช้ฟังก์ชัน httpsGet()
     Getmedtotal();
-    Sentclienttime();
-    //SentTempandHumi();
+    //Postclienttime();
+    PostTempandHumi();
     lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
   }
-  // Display.loop();
 
   Display.loop(); // Keep GUI work
 }

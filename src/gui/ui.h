@@ -35,12 +35,12 @@ extern lv_obj_t * ui_status_layout;
 extern lv_obj_t * ui_Label3;
 extern lv_obj_t * ui_temp_box;
 extern lv_obj_t * ui_temp_Label;
-extern lv_obj_t * ui_Container8;
+extern lv_obj_t * ui_Container9;
 extern lv_obj_t * ui_temp_Label_value;
 extern lv_obj_t * ui_temp_Label_value1;
 extern lv_obj_t * ui_Humi_box;
 extern lv_obj_t * ui_humi_Label;
-extern lv_obj_t * ui_Container9;
+extern lv_obj_t * ui_Container8;
 extern lv_obj_t * ui_humi_Label_value;
 extern lv_obj_t * ui_humi_Label_value1;
 extern lv_obj_t * ui_Container1;
@@ -60,7 +60,6 @@ extern lv_obj_t * ui_switch_Con;
 extern lv_obj_t * ui_pill_type_box;
 extern lv_obj_t * ui_Label5;
 extern lv_obj_t * ui_type_sele;
-void ui_event_type_a(lv_event_t * e);
 extern lv_obj_t * ui_type_a;
 extern lv_obj_t * ui_A_Label;
 extern lv_obj_t * ui_timer_bodyA;
@@ -124,7 +123,7 @@ LV_IMG_DECLARE(ui_img_setting_png);    // assets/setting.png
 LV_IMG_DECLARE(ui_img_1626888446);    // assets/check-mark-line-icon.png
 LV_IMG_DECLARE(ui_img_pickup_icon1_png);    // assets/pickup_icon1.png
 LV_IMG_DECLARE(ui_img_smartpill_png);    // assets/SmartPill.png
-LV_IMG_DECLARE(ui_img_1345796492);    // assets/globe-icon.png
+LV_IMG_DECLARE(ui_img_312035399);    // assets/redo-arrow-icon.png
 LV_IMG_DECLARE(ui_img_1272477160);    // assets/wifi-icon.png
 LV_IMG_DECLARE(ui_img_1024313544);    // assets/cloud-icon.png
 
