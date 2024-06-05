@@ -41,7 +41,7 @@ void ui_loading_page_screen_init(void)
     lv_obj_clear_flag(ui_P_refresh4, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_bg_color(ui_P_refresh4, lv_color_hex(0x61A9F6), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_P_refresh4, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_img_src(ui_P_refresh4, &ui_img_312035399, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_src(ui_P_refresh4, &ui_img_685164422, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor(ui_P_refresh4, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_recolor_opa(ui_P_refresh4, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_width(ui_P_refresh4, 0, LV_PART_MAIN | LV_STATE_DEFAULT);

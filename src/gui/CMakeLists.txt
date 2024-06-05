@@ -14,6 +14,7 @@ SET(SOURCES screens/ui_Index.c
     images/ui_img_312035399.c
     images/ui_img_1272477160.c
     images/ui_img_1024313544.c
+    images/ui_img_alert_png.c
     fonts/ui_font_kanit18.c
     fonts/ui_font_kanit20.c
     fonts/ui_font_kanit24.c)

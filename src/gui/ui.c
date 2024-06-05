@@ -29,12 +29,12 @@ lv_obj_t * ui_status_layout;
 lv_obj_t * ui_Label3;
 lv_obj_t * ui_temp_box;
 lv_obj_t * ui_temp_Label;
-lv_obj_t * ui_Container9;
+lv_obj_t * ui_Container10;
 lv_obj_t * ui_temp_Label_value;
 lv_obj_t * ui_temp_Label_value1;
 lv_obj_t * ui_Humi_box;
 lv_obj_t * ui_humi_Label;
-lv_obj_t * ui_Container8;
+lv_obj_t * ui_Container9;
 lv_obj_t * ui_humi_Label_value;
 lv_obj_t * ui_humi_Label_value1;
 lv_obj_t * ui_Container1;
@@ -74,8 +74,8 @@ lv_obj_t * ui_Container5;
 lv_obj_t * ui_clientalarm;
 lv_obj_t * ui_Pill_alarm;
 lv_obj_t * ui_time__alarm;
-lv_obj_t * ui_A_alarm;
 lv_obj_t * ui_B_alarm;
+lv_obj_t * ui_A_alarm;
 lv_obj_t * ui_pick_icon;
 lv_obj_t * ui_Pill_alarm1;
 void ui_event_Button1(lv_event_t * e);
@@ -99,7 +99,13 @@ lv_obj_t * ui_Wifi_icon;
 lv_obj_t * ui_cloud_icon;
 lv_obj_t * ui_time_Label;
 lv_obj_t * ui_loading;
-lv_obj_t * ui_Spinner;
+lv_obj_t * ui_Container12;
+lv_obj_t * ui_Image4;
+lv_obj_t * ui_Container11;
+lv_obj_t * ui_Label10;
+lv_obj_t * ui_Label8;
+void ui_event_P_refresh1(lv_event_t * e);
+lv_obj_t * ui_P_refresh1;
 
 
 // SCREEN: ui_loading_page
@@ -199,6 +205,14 @@ void ui_event_P_refresh3(lv_event_t * e)
     lv_obj_t * target = lv_event_get_target(e);
     if(event_code == LV_EVENT_CLICKED) {
         _ui_screen_change(&ui_loading_page, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_loading_page_screen_init);
+    }
+}
+void ui_event_P_refresh1(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_flag_modify(ui_loading, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
     }
 }
 void ui_event_P_refresh4(lv_event_t * e)

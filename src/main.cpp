@@ -20,6 +20,10 @@ const char *ssid = "Layya";
 const char *password = "Infinity";
 
 unsigned long lastGetTime = 0;
+bool showAlert = false;
+unsigned long alertStartTime = 0;
+
+bool isAlarmActive = false;
 
 bool isPostedA = false;
 bool isPostedB = false;
@@ -32,7 +36,7 @@ int motor1Pin4 = 6;            // Orange - 28BYJ48 pin 4
 int motor1Speed = 4;           // Variable to set stepper speed
 int digitalPin1 = 38;          // Declare variable to represent digital pin 4
 int threshold1 = 20;           // Threshold value for sensor
-bool sensor1Triggered = false; // Flag variable to track sensor state
+
 
 int stacksensorA = 3;
 int stacksensorB = 3;
@@ -44,7 +48,7 @@ int motor2Pin4 = 39;           // Orange - 28BYJ48 pin 4
 int motor2Speed = 4;           // Variable to set stepper speed
 int digitalPin2 = 8;           // Declare variable to represent digital pin 4
 int threshold2 = 20;           // Threshold value for sensor
-bool sensor2Triggered = false; // Flag variable to track sensor state
+
 
 const char *root_ca =
     "-----BEGIN CERTIFICATE-----\n"
@@ -77,14 +81,20 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600);
 char client_name[50];
 char timeStr[9];
 
+const char *CT1;
+const char *CT2;
+const char *CT3;
+const char *CT4;
+
 const char *selectedClientName; // ประกาศตัวแปร selectedClientName เป็น global
 
- int currentTotalMinutes; // ประกาศตัวแปร currentTotalMinutes สำหรับเก็บค่าเวลาปัจจุบัน
-  int ct1TotalMinutes;     // ประกาศตัวแปร ct1TotalMinutes สำหรับเก็บค่า CT1
-  int ct2TotalMinutes;     // ประกาศตัวแปร ct2TotalMinutes สำหรับเก็บค่า CT2
-  int ct3TotalMinutes;     // ประกาศตัวแปร ct3TotalMinutes สำหรับเก็บค่า CT3
-  int ct4TotalMinutes;     // ประกาศตัวแปร ct4TotalMinutes สำหรับเก็บค่า CT4
+int currentTotalMinutes; // ประกาศตัวแปร currentTotalMinutes สำหรับเก็บค่าเวลาปัจจุบัน
+int ct1TotalMinutes;     // ประกาศตัวแปร ct1TotalMinutes สำหรับเก็บค่า CT1
+int ct2TotalMinutes;     // ประกาศตัวแปร ct2TotalMinutes สำหรับเก็บค่า CT2
+int ct3TotalMinutes;     // ประกาศตัวแปร ct3TotalMinutes สำหรับเก็บค่า CT3
+int ct4TotalMinutes;     // ประกาศตัวแปร ct4TotalMinutes สำหรับเก็บค่า CT4
 
+char ct1Formatted[6], ct2Formatted[6], ct3Formatted[6], ct4Formatted[6];
 
 // Function to parse time string (HH:MM) to total minutes
 int parseTimeToMinutes(const char *timeStr)
@@ -143,10 +153,10 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int
     // ถ้าพบ client ที่เลือก
     if (strcmp(clientName, selectedClientName) == 0)
     {
-      const char *CT1 = row["CT1"];
-      const char *CT2 = row["CT2"];
-      const char *CT3 = row["CT3"];
-      const char *CT4 = row["CT4"];
+      CT1 = row["CT1"];
+      CT2 = row["CT2"];
+      CT3 = row["CT3"];
+      CT4 = row["CT4"];
 
       const char *T1 = row["T1"];
       const char *T2 = row["T2"];
@@ -226,41 +236,52 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int
       Serial.println("******************************************************");
 
       // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
-      int currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
+      currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
 
       // แปลง CT1, CT2, CT3, CT4 เป็นนาที
-      int ct1TotalMinutes = parseTimeToMinutes(CT1);
-      int ct2TotalMinutes = parseTimeToMinutes(CT2);
-      int ct3TotalMinutes = parseTimeToMinutes(CT3);
-      int ct4TotalMinutes = parseTimeToMinutes(CT4);
+      ct1TotalMinutes = parseTimeToMinutes(CT1);
+      ct2TotalMinutes = parseTimeToMinutes(CT2);
+      ct3TotalMinutes = parseTimeToMinutes(CT3);
+      ct4TotalMinutes = parseTimeToMinutes(CT4);
 
+      int hourNow = timeClient.getHours();
+      int minuteNow = timeClient.getMinutes();
+      int secondNow = timeClient.getSeconds();
       // แปลงเวลาจากนาทีกลับเป็น HH:MM
-      char ct1Formatted[6], ct2Formatted[6], ct3Formatted[6], ct4Formatted[6];
+
       snprintf(ct1Formatted, sizeof(ct1Formatted), "%02d:%02d", ct1TotalMinutes / 60, ct1TotalMinutes % 60);
       snprintf(ct2Formatted, sizeof(ct2Formatted), "%02d:%02d", ct2TotalMinutes / 60, ct2TotalMinutes % 60);
       snprintf(ct3Formatted, sizeof(ct3Formatted), "%02d:%02d", ct3TotalMinutes / 60, ct3TotalMinutes % 60);
       snprintf(ct4Formatted, sizeof(ct4Formatted), "%02d:%02d", ct4TotalMinutes / 60, ct4TotalMinutes % 60);
+
+      char timeStr[7]; // "HH:MM:SS\0"
+      snprintf(timeStr, sizeof(timeStr), "%02d:%02d", hourNow, minuteNow);
+      Serial.println("********************************timeStr: " + String(timeStr));
 
       // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามเงื่อนไข
       if (currentTotalMinutes > ct1TotalMinutes && currentTotalMinutes < ct2TotalMinutes)
       {
         Serial.println("*********CT2: " + String(ct2Formatted));
         lv_label_set_text(ui_time__alarm, ct2Formatted);
+        lv_label_set_text(ui_Label10, ct2Formatted);
       }
       else if (currentTotalMinutes >= ct2TotalMinutes && currentTotalMinutes < ct3TotalMinutes)
       {
         Serial.println("**********CT3: " + String(ct3Formatted));
         lv_label_set_text(ui_time__alarm, ct3Formatted);
+        lv_label_set_text(ui_Label10, ct3Formatted);
       }
       else if (currentTotalMinutes >= ct3TotalMinutes && currentTotalMinutes < ct4TotalMinutes)
       {
         Serial.println("*********CT4: " + String(ct4Formatted));
         lv_label_set_text(ui_time__alarm, ct4Formatted);
+        lv_label_set_text(ui_Label10, ct4Formatted);
       }
       else
       {
         Serial.println("***********CT1: " + String(ct1Formatted));
         lv_label_set_text(ui_time__alarm, ct1Formatted);
+        lv_label_set_text(ui_Label10, ct1Formatted);
       }
 
       // อัพเดท LVGL labels
@@ -548,7 +569,7 @@ void Getmedtotal()
 
       // Process the first row (index 0, A)
       JsonObject rowA = rows[0];
-      const char *md_set_A = rowA["md_set"];
+      const char *md_set_A = rowA["md_name"];
       int md_total_A = rowA["md_total"];
 
       Serial.print("md_set_A = ");
@@ -566,7 +587,7 @@ void Getmedtotal()
 
       // Process the second row (index 1, B)
       JsonObject rowB = rows[1];
-      const char *md_set_B = rowB["md_set"];
+      const char *md_set_B = rowB["md_name"];
       int md_total_B = rowB["md_total"];
 
       Serial.print("md_set_B = ");
@@ -737,9 +758,6 @@ void setup()
   pinMode(motor2Pin3, OUTPUT);
   pinMode(motor2Pin4, OUTPUT);
 
-  sensor1Triggered = true;
-  sensor2Triggered = true;
-
   // Setup peripherals
   Display.begin(0); // rotation number 0
   Touch.begin();
@@ -754,7 +772,7 @@ void setup()
 
   Card.useLVGL(); // Map MicroSD Card to LVGL File System
 
-  Display.enableAutoSleep(120); // Auto off display if not touch in 2 min
+  //Display.enableAutoSleep(120); // Auto off display if not touch in 2 min
 
   // Add load your UI function
   ui_init();
@@ -787,6 +805,10 @@ void setup()
 
   lv_obj_add_event_cb(ui_P_refresh, client_click_handle, LV_EVENT_CLICKED, NULL);
   lv_obj_add_event_cb(ui_Button1, accept_click_handle, LV_EVENT_CLICKED, NULL);
+  Getclient(); // เรียกใช้ฟังก์ชัน httpsGet()
+  Getmedtotal();
+  PostTempandHumi();
+  lv_disp_load_scr(ui_Index);
 }
 
 void loop()
@@ -794,48 +816,101 @@ void loop()
   updateWiFiIcon();
   timenow();
   timeClient.update();
-  unsigned long currentMillis = millis(); // เวลาปัจจุบัน
-
+   unsigned long currentMillis = millis(); // เวลาปัจจุบัน
+  lv_disp_load_scr(ui_Index);
   bool val1 = digitalRead(digitalPin1);
   bool val2 = digitalRead(digitalPin2);
-  Serial.print("val1 = ");
-  Serial.println(val1);
-  Serial.print("val2 = ");
-  Serial.println(val2);
+  // Serial.print("val1 = ");
+  // Serial.println(val1);
+  // Serial.print("val2 = ");
+  // Serial.println(val2);
 
-  if (stacksensorA == 0) {
-    clockwise1();
-    if (val1 == 1) {
-      stacksensorA = 1;
-      Serial.print("******************************************************************AAAAAA");
+
+  if (currentMillis - lastGetTime >= 10000) {
+    lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
+
+    Serial.print("CT1: ");
+    Serial.println(CT1);
+    Serial.print("CT2: ");
+    Serial.println(CT2);
+    Serial.print("CT3: ");
+    Serial.println(CT3);
+    Serial.print("CT4: ");
+    Serial.println(CT4);
+
+    // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
+    int currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
+
+    Serial.println("********************************timeStr: " + String(currentTotalMinutes));
+    Serial.println("********************************ct1TotalMinutes: " + String(ct1TotalMinutes));
+
+    int ct5TotalMinutes=841;
+    int ct6TotalMinutes=843;
+
+    // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามเงื่อนไข
+    if (currentTotalMinutes == ct1TotalMinutes || 
+        currentTotalMinutes == ct2TotalMinutes || 
+        currentTotalMinutes == ct5TotalMinutes || 
+        currentTotalMinutes == ct6TotalMinutes) {
+      Serial.println("*********Compare: " + String(currentTotalMinutes));
+      lv_obj_clear_flag(ui_loading, LV_OBJ_FLAG_HIDDEN); // แสดง ui_loading
+      Sound.useLVGL();   // Map speaker to LVGL
+      alertStartTime = millis();
+      showAlert = true;
     }
   }
-  if (stacksensorA == 1 && !isPostedA) {
-    postsensorA();
-    isPostedA = true;
-    stopMotor1();
-  }
 
-  if (stacksensorB == 0) {
-    clockwise2();
-    if (val2 == 1) {
-      stacksensorB = 1;
-      Serial.print("******************************************************************BBBB");
+  if (showAlert) {
+    if (millis() - alertStartTime >= 10000) { // ค้างไว้ 10 วินาที
+      lv_obj_add_flag(ui_loading, LV_OBJ_FLAG_HIDDEN); // ซ่อน ui_loading
+      lv_disp_load_scr(ui_Index);
+      showAlert = false;
+      
     }
   }
-  if (stacksensorB == 1 && !isPostedB) {
-    postsensorB();
-    isPostedB = true;
-    stopMotor2();
-  }
 
-  if (currentMillis - lastGetTime >= 30000)
+
+
+  // if (stacksensorA == 0)
+  // {
+  //   clockwise1();
+  //   if (val1 == 1)
+  //   {
+  //     stacksensorA = 1;
+  //     Serial.print("******************************************************************AAAAAA");
+  //   }
+  // }
+  // if (stacksensorA == 1 && !isPostedA)
+  // {
+  //   postsensorA();
+  //   isPostedA = true;
+  //   stopMotor1();
+  // }
+
+  // if (stacksensorB == 0)
+  // {
+  //   clockwise2();
+  //   if (val2 == 1)
+  //   {
+  //     stacksensorB = 1;
+  //     Serial.print("******************************************************************BBBB");
+  //   }
+  // }
+  // if (stacksensorB == 1 && !isPostedB)
+  // {
+  //   postsensorB();
+  //   isPostedB = true;
+  //   stopMotor2();
+  // }
+
+  if (currentMillis - lastGetTime >= 300000) // ทุก5 นาที
   {
-   
-    // ทุก5 นาที
     Getclient(); // เรียกใช้ฟังก์ชัน httpsGet()
     Getmedtotal();
-    //Postclienttime();
+    lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
+  }
+  if (currentMillis - lastGetTime >= 900000)
+  {
     PostTempandHumi();
     lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
   }

@@ -35,12 +35,12 @@ extern lv_obj_t * ui_status_layout;
 extern lv_obj_t * ui_Label3;
 extern lv_obj_t * ui_temp_box;
 extern lv_obj_t * ui_temp_Label;
-extern lv_obj_t * ui_Container9;
+extern lv_obj_t * ui_Container10;
 extern lv_obj_t * ui_temp_Label_value;
 extern lv_obj_t * ui_temp_Label_value1;
 extern lv_obj_t * ui_Humi_box;
 extern lv_obj_t * ui_humi_Label;
-extern lv_obj_t * ui_Container8;
+extern lv_obj_t * ui_Container9;
 extern lv_obj_t * ui_humi_Label_value;
 extern lv_obj_t * ui_humi_Label_value1;
 extern lv_obj_t * ui_Container1;
@@ -80,8 +80,8 @@ extern lv_obj_t * ui_Container5;
 extern lv_obj_t * ui_clientalarm;
 extern lv_obj_t * ui_Pill_alarm;
 extern lv_obj_t * ui_time__alarm;
-extern lv_obj_t * ui_A_alarm;
 extern lv_obj_t * ui_B_alarm;
+extern lv_obj_t * ui_A_alarm;
 extern lv_obj_t * ui_pick_icon;
 extern lv_obj_t * ui_Pill_alarm1;
 void ui_event_Button1(lv_event_t * e);
@@ -105,7 +105,13 @@ extern lv_obj_t * ui_Wifi_icon;
 extern lv_obj_t * ui_cloud_icon;
 extern lv_obj_t * ui_time_Label;
 extern lv_obj_t * ui_loading;
-extern lv_obj_t * ui_Spinner;
+extern lv_obj_t * ui_Container12;
+extern lv_obj_t * ui_Image4;
+extern lv_obj_t * ui_Container11;
+extern lv_obj_t * ui_Label10;
+extern lv_obj_t * ui_Label8;
+void ui_event_P_refresh1(lv_event_t * e);
+extern lv_obj_t * ui_P_refresh1;
 // SCREEN: ui_loading_page
 void ui_loading_page_screen_init(void);
 extern lv_obj_t * ui_loading_page;
@@ -126,6 +132,7 @@ LV_IMG_DECLARE(ui_img_smartpill_png);    // assets/SmartPill.png
 LV_IMG_DECLARE(ui_img_312035399);    // assets/redo-arrow-icon.png
 LV_IMG_DECLARE(ui_img_1272477160);    // assets/wifi-icon.png
 LV_IMG_DECLARE(ui_img_1024313544);    // assets/cloud-icon.png
+LV_IMG_DECLARE(ui_img_alert_png);    // assets/alert.png
 
 
 
