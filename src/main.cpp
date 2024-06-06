@@ -653,7 +653,7 @@ void postsensorA()
     Serial.println(httpResponseCode);
     String payload = http.getString();
     Serial.println(payload);
-    ฆ
+   
   }
   else
   {
