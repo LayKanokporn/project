@@ -39,7 +39,6 @@ void ui_Index_screen_init(void)
     lv_obj_set_x(ui_Home_btn, 1);
     lv_obj_set_y(ui_Home_btn, -133);
     lv_obj_set_align(ui_Home_btn, LV_ALIGN_CENTER);
-    lv_obj_add_state(ui_Home_btn, LV_STATE_CHECKED);       /// States
     lv_obj_add_flag(ui_Home_btn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Home_btn, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_bg_color(ui_Home_btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1058,6 +1057,7 @@ void ui_Index_screen_init(void)
     lv_obj_set_x(ui_loading, 2);
     lv_obj_set_y(ui_loading, 0);
     lv_obj_set_align(ui_loading, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_loading, LV_OBJ_FLAG_HIDDEN);     /// Flags
     lv_obj_clear_flag(ui_loading, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_radius(ui_loading, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_side(ui_loading, LV_BORDER_SIDE_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);

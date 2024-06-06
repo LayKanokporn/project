@@ -24,31 +24,28 @@ bool showAlert = false;
 unsigned long alertStartTime = 0;
 
 bool isAlarmActive = false;
-
 bool isPostedA = false;
 bool isPostedB = false;
 
 // motorO
-int motor1Pin1 = 1;            // Blue   - 28BYJ48 pin 1
-int motor1Pin2 = 2;            // Pink   - 28BYJ48 pin 2
-int motor1Pin3 = 7;            // Yellow - 28BYJ48 pin 3
-int motor1Pin4 = 6;            // Orange - 28BYJ48 pin 4
-int motor1Speed = 4;           // Variable to set stepper speed
-int digitalPin1 = 38;          // Declare variable to represent digital pin 4
-int threshold1 = 20;           // Threshold value for sensor
-
+int motor1Pin1 = 1;   // Blue   - 28BYJ48 pin 1
+int motor1Pin2 = 2;   // Pink   - 28BYJ48 pin 2
+int motor1Pin3 = 7;   // Yellow - 28BYJ48 pin 3
+int motor1Pin4 = 6;   // Orange - 28BYJ48 pin 4
+int motor1Speed = 4;  // Variable to set stepper speed
+int digitalPin1 = 38; // Declare variable to represent digital pin 4
+int threshold1 = 20;  // Threshold value for sensor
 
 int stacksensorA = 3;
 int stacksensorB = 3;
 // motorcap
-int motor2Pin1 = 42;           // Blue   - 28BYJ48 pin 1
-int motor2Pin2 = 41;           // Pink   - 28BYJ48 pin 2
-int motor2Pin3 = 40;           // Yellow - 28BYJ48 pin 3
-int motor2Pin4 = 39;           // Orange - 28BYJ48 pin 4
-int motor2Speed = 4;           // Variable to set stepper speed
-int digitalPin2 = 8;           // Declare variable to represent digital pin 4
-int threshold2 = 20;           // Threshold value for sensor
-
+int motor2Pin1 = 42; // Blue   - 28BYJ48 pin 1
+int motor2Pin2 = 41; // Pink   - 28BYJ48 pin 2
+int motor2Pin3 = 40; // Yellow - 28BYJ48 pin 3
+int motor2Pin4 = 39; // Orange - 28BYJ48 pin 4
+int motor2Speed = 4; // Variable to set stepper speed
+int digitalPin2 = 8; // Declare variable to represent digital pin 4
+int threshold2 = 20; // Threshold value for sensor
 
 const char *root_ca =
     "-----BEGIN CERTIFICATE-----\n"
@@ -106,7 +103,6 @@ int parseTimeToMinutes(const char *timeStr)
 
 // Function to display client CT in HH:MM format
 // ฟังก์ชันสำหรับค้นหาและแสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
-// Function to display client CT in HH:MM format
 void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int &ct1TotalMinutes, int &ct2TotalMinutes, int &ct3TotalMinutes, int &ct4TotalMinutes)
 {
   // ตรวจสอบสถานะ WiFi ก่อนที่จะดึงข้อมูล
@@ -115,12 +111,10 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int
     Serial.println("WiFi Disconnected");
     return;
   }
-
   // เริ่ม HTTP ร้องขอ
   HTTPClient http;
   String getserver = "https://senior-app.azurewebsites.net/api/client";
   http.begin(getserver);
-
   // ทำการ GET ข้อมูล
   int httpResponseCode = http.GET();
   if (httpResponseCode <= 0)
@@ -130,7 +124,6 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int
     http.end();
     return;
   }
-
   // ดึงข้อมูล JSON และตรวจสอบ
   String payload = http.getString();
   DynamicJsonDocument doc(1024);
@@ -660,6 +653,7 @@ void postsensorA()
     Serial.println(httpResponseCode);
     String payload = http.getString();
     Serial.println(payload);
+    ฆ
   }
   else
   {
@@ -669,6 +663,7 @@ void postsensorA()
   http.end();
   stacksensorA = 3;
 }
+
 void postsensorB()
 {
   String serverName = "https://senior-app.azurewebsites.net/api/medicine/balance";
@@ -702,6 +697,7 @@ void postsensorB()
   http.end();
   stacksensorB = 3;
 }
+
 void clockwise2()
 {
   digitalWrite(motor2Pin1, HIGH);
@@ -768,18 +764,10 @@ void setup()
   // Map peripheral to LVGL
   Display.useLVGL(); // Map display to LVGL
   Touch.useLVGL();   // Map touch screen to LVGL
-  // Sound.useLVGL();   // Map speaker to LVGL
 
-  Card.useLVGL(); // Map MicroSD Card to LVGL File System
-
-  //Display.enableAutoSleep(120); // Auto off display if not touch in 2 min
-
-  // Add load your UI function
+  // Display.enableAutoSleep(120); // Auto off display if not touch in 2 min
+  //  Add load your UI function
   ui_init();
-
-  lv_obj_add_event_cb(ui_P_refresh, [](lv_event_t *e)
-                      { audio.connecttoFS(Card, "/audio/sound.mp3"); }, LV_EVENT_CLICKED, NULL);
-
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
   while (WiFi.status() != WL_CONNECTED)
@@ -816,17 +804,46 @@ void loop()
   updateWiFiIcon();
   timenow();
   timeClient.update();
-   unsigned long currentMillis = millis(); // เวลาปัจจุบัน
+  unsigned long currentMillis = millis(); // เวลาปัจจุบัน
   lv_disp_load_scr(ui_Index);
   bool val1 = digitalRead(digitalPin1);
   bool val2 = digitalRead(digitalPin2);
-  // Serial.print("val1 = ");
-  // Serial.println(val1);
-  // Serial.print("val2 = ");
-  // Serial.println(val2);
+  Serial.print("val1 = ");
+  Serial.println(val1);
+  Serial.print("val2 = ");
+  Serial.println(val2);
 
+  if (stacksensorA == 0)
+  {
+    clockwise1();
+    if (val1 == 1)
+    {
+      stacksensorA = 1;
+    }
+  }
+  if (stacksensorA == 1 && !isPostedA)
+  {
+    postsensorA();
+    isPostedA = true;
+    stopMotor1();
+  }
 
-  if (currentMillis - lastGetTime >= 10000) {
+  if (stacksensorB == 0)
+  {
+    clockwise2();
+    if (val2 == 1)
+    {
+      stacksensorB = 1;
+    }
+  }
+  if (stacksensorB == 1 && !isPostedB)
+  {
+    postsensorB();
+    isPostedB = true;
+    stopMotor2();
+  }
+  if (currentMillis - lastGetTime >= 10000)
+  {
     lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
 
     Serial.print("CT1: ");
@@ -842,66 +859,28 @@ void loop()
     int currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
 
     Serial.println("********************************timeStr: " + String(currentTotalMinutes));
-    Serial.println("********************************ct1TotalMinutes: " + String(ct1TotalMinutes));
-
-    int ct5TotalMinutes=841;
-    int ct6TotalMinutes=843;
 
     // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามเงื่อนไข
-    if (currentTotalMinutes == ct1TotalMinutes || 
-        currentTotalMinutes == ct2TotalMinutes || 
-        currentTotalMinutes == ct5TotalMinutes || 
-        currentTotalMinutes == ct6TotalMinutes) {
+    if (currentTotalMinutes == ct1TotalMinutes ||
+        currentTotalMinutes == ct2TotalMinutes ||
+        currentTotalMinutes == ct3TotalMinutes ||
+        currentTotalMinutes == ct4TotalMinutes)
+    {
       Serial.println("*********Compare: " + String(currentTotalMinutes));
       lv_obj_clear_flag(ui_loading, LV_OBJ_FLAG_HIDDEN); // แสดง ui_loading
-      Sound.useLVGL();   // Map speaker to LVGL
       alertStartTime = millis();
       showAlert = true;
     }
   }
-
-  if (showAlert) {
-    if (millis() - alertStartTime >= 10000) { // ค้างไว้ 10 วินาที
+  if (showAlert)
+  {
+    if (millis() - alertStartTime >= 10000)
+    {                                                  // ค้างไว้ 10 วินาที
       lv_obj_add_flag(ui_loading, LV_OBJ_FLAG_HIDDEN); // ซ่อน ui_loading
       lv_disp_load_scr(ui_Index);
       showAlert = false;
-      
     }
   }
-
-
-
-  // if (stacksensorA == 0)
-  // {
-  //   clockwise1();
-  //   if (val1 == 1)
-  //   {
-  //     stacksensorA = 1;
-  //     Serial.print("******************************************************************AAAAAA");
-  //   }
-  // }
-  // if (stacksensorA == 1 && !isPostedA)
-  // {
-  //   postsensorA();
-  //   isPostedA = true;
-  //   stopMotor1();
-  // }
-
-  // if (stacksensorB == 0)
-  // {
-  //   clockwise2();
-  //   if (val2 == 1)
-  //   {
-  //     stacksensorB = 1;
-  //     Serial.print("******************************************************************BBBB");
-  //   }
-  // }
-  // if (stacksensorB == 1 && !isPostedB)
-  // {
-  //   postsensorB();
-  //   isPostedB = true;
-  //   stopMotor2();
-  // }
 
   if (currentMillis - lastGetTime >= 300000) // ทุก5 นาที
   {
@@ -914,6 +893,5 @@ void loop()
     PostTempandHumi();
     lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
   }
-
   Display.loop(); // Keep GUI work
 }
