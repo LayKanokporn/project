@@ -26,9 +26,9 @@ bool isAlarmActive = false;
 bool isPostedA = false;
 bool isPostedB = false;
 static bool sent = false;
-
+unsigned long currentMillis = millis(); // เวลาปัจจุบัน
 // Token
-#define LINE_TOKEN          "qSiykFnoJdViGacCJz3puq8BY5VnLb7kVsE55bHFkE4"
+#define LINE_TOKEN "qSiykFnoJdViGacCJz3puq8BY5VnLb7kVsE55bHFkE4"
 
 // motorO
 int motor1Pin1 = 1;   // Blue   - 28BYJ48 pin 1
@@ -103,7 +103,6 @@ int parseTimeToMinutes(const char *timeStr)
   sscanf(timeStr, "%d:%d", &hours, &minutes);
   return hours * 60 + minutes;
 }
-
 
 // Function to display client CT in HH:MM format
 // ฟังก์ชันสำหรับค้นหาและแสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
@@ -261,28 +260,28 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int
         Serial.println("*********CT2: " + String(ct2Formatted));
         lv_label_set_text(ui_time__alarm, ct2Formatted);
         lv_label_set_text(ui_Label10, ct2Formatted);
-         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct2Formatted) + ")"));
+        LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct2Formatted) + ")"));
       }
       else if (currentTotalMinutes >= ct2TotalMinutes && currentTotalMinutes < ct3TotalMinutes)
       {
         Serial.println("**********CT3: " + String(ct3Formatted));
         lv_label_set_text(ui_time__alarm, ct3Formatted);
         lv_label_set_text(ui_Label10, ct3Formatted);
-         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct3Formatted) + ")"));
+        LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct3Formatted) + ")"));
       }
       else if (currentTotalMinutes >= ct3TotalMinutes && currentTotalMinutes < ct4TotalMinutes)
       {
         Serial.println("*********CT4: " + String(ct4Formatted));
         lv_label_set_text(ui_time__alarm, ct4Formatted);
         lv_label_set_text(ui_Label10, ct4Formatted);
-         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct4Formatted) + ")"));
+        LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct4Formatted) + ")"));
       }
       else
       {
         Serial.println("***********CT1: " + String(ct1Formatted));
         lv_label_set_text(ui_time__alarm, ct1Formatted);
         lv_label_set_text(ui_Label10, ct1Formatted);
-         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct1Formatted) + ")"));
+        LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct1Formatted) + ")"));
       }
 
       // อัพเดท LVGL labels
@@ -668,7 +667,7 @@ void postsensorA()
     Serial.println(httpResponseCode);
   }
   http.end();
-  stacksensorA = 3;
+  stacksensorA = 4;
 }
 
 void postsensorB()
@@ -702,7 +701,7 @@ void postsensorB()
     Serial.println(httpResponseCode);
   }
   http.end();
-  stacksensorB = 3;
+  stacksensorB = 4;
 }
 
 void clockwise2()
@@ -766,7 +765,6 @@ void setup()
   Touch.begin();
   Sound.begin();
   Card.begin(); // uncomment if you want to Read/Write/Play/Load file in MicroSD Card
-
 
   // Map peripheral to LVGL
   Display.useLVGL(); // Map display to LVGL
@@ -850,6 +848,18 @@ void loop()
     isPostedB = true;
     stopMotor2();
   }
+
+  if (stacksensorA == 4 && stacksensorB == 4)
+  {
+    if (currentMillis - lastGetTime >= 5000)
+    {
+      LINE.send(String("\n💊จ่ายยาเรียบร้อยแล้ววว💊" + String(timeClient.getFormattedTime())));
+      lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
+    }
+    stacksensorA = 3;
+    stacksensorB = 3;
+  }
+
   if (currentMillis - lastGetTime >= 10000)
   {
     lastGetTime = currentMillis; // ปรับปรุงเวลาของการรับข้อมูลล่าสุด
@@ -865,22 +875,23 @@ void loop()
 
     // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
     int currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
-  
+
     Serial.println("********************************timeStr: " + String(currentTotalMinutes));
 
     // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามเงื่อนไข
     if (currentTotalMinutes == ct1TotalMinutes ||
         currentTotalMinutes == ct2TotalMinutes ||
         currentTotalMinutes == ct3TotalMinutes ||
-        currentTotalMinutes == ct4TotalMinutes) 
+        currentTotalMinutes == ct4TotalMinutes)
     {
-      Serial.println("*********Compare: " +  String(timeClient.getFormattedTime()) );
-      LINE.send(String("\n💊ตอนนี้ถึงเวลาทานยาแล้ว💊" +  String(timeClient.getFormattedTime())   ));
+      Serial.println("*********Compare: " + String(timeClient.getFormattedTime()));
+      LINE.send(String("\n💊ตอนนี้ถึงเวลาทานยาแล้ว💊" + String(timeClient.getFormattedTime())));
       lv_obj_clear_flag(ui_loading, LV_OBJ_FLAG_HIDDEN); // Show ui_loading
       alertStartTime = millis();
       showAlert = true;
-
-    } else {
+    }
+    else
+    {
       sent = false;
     }
   }
