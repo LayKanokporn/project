@@ -221,7 +221,7 @@
                       {
                         "nid": 311537193,
                         "strtype": "OBJECT/Checked",
-                        "strval": "True",
+                        "strval": "False",
                         "InheritedType": 2
                       },
                       {
@@ -3251,8 +3251,7 @@
                     "InheritedType": 11
                   }
                 ],
-                "saved_objtypeKey": "PANEL",
-                "tree_closed": true
+                "saved_objtypeKey": "PANEL"
               },
               {
                 "guid": "GUID533131-285342S113953114",
@@ -26394,8 +26393,7 @@
                 "InheritedType": 11
               }
             ],
-            "saved_objtypeKey": "CONTAINER",
-            "tree_closed": true
+            "saved_objtypeKey": "CONTAINER"
           },
           {
             "guid": "GUID82157681-287332S6103114",
@@ -29528,7 +29526,7 @@
               {
                 "nid": -858597770,
                 "strtype": "OBJECT/Hidden",
-                "strval": "False",
+                "strval": "True",
                 "InheritedType": 2
               },
               {
@@ -29748,7 +29746,8 @@
                 "InheritedType": 11
               }
             ],
-            "saved_objtypeKey": "PANEL"
+            "saved_objtypeKey": "PANEL",
+            "tree_closed": true
           }
         ],
         "isPage": true,
@@ -31241,7 +31240,7 @@
     "theme_color2": 0,
     "uiExportFolderPath": "D:\\project\\src\\gui",
     "projectExportFolderPath": "D:\\project\\src\\gui",
-    "backup_cnt": 115,
+    "backup_cnt": 203,
     "autosave_cnt": 0,
     "lvgl_version": "8.3.6",
     "callfuncsexport": "C_FILE",

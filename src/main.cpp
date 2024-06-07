@@ -9,10 +9,9 @@
 #include <Wire.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-#include <AHT20.h>
-#include <Audio.h>
-
-Audio audio;
+#include "AHT20.h"
+#include <WiFiClientSecure.h>
+#include <ArtronShop_LineNotify.h>
 
 AHT20 aht20;
 
@@ -26,6 +25,10 @@ unsigned long alertStartTime = 0;
 bool isAlarmActive = false;
 bool isPostedA = false;
 bool isPostedB = false;
+static bool sent = false;
+
+// Token
+#define LINE_TOKEN          "qSiykFnoJdViGacCJz3puq8BY5VnLb7kVsE55bHFkE4"
 
 // motorO
 int motor1Pin1 = 1;   // Blue   - 28BYJ48 pin 1
@@ -100,6 +103,7 @@ int parseTimeToMinutes(const char *timeStr)
   sscanf(timeStr, "%d:%d", &hours, &minutes);
   return hours * 60 + minutes;
 }
+
 
 // Function to display client CT in HH:MM format
 // ฟังก์ชันสำหรับค้นหาและแสดงข้อมูล CT1, CT2, CT3, CT4 ของ client ที่เลือก
@@ -257,24 +261,28 @@ void displayClientCT1(const char *selectedClientName, NTPClient &timeClient, int
         Serial.println("*********CT2: " + String(ct2Formatted));
         lv_label_set_text(ui_time__alarm, ct2Formatted);
         lv_label_set_text(ui_Label10, ct2Formatted);
+         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct2Formatted) + ")"));
       }
       else if (currentTotalMinutes >= ct2TotalMinutes && currentTotalMinutes < ct3TotalMinutes)
       {
         Serial.println("**********CT3: " + String(ct3Formatted));
         lv_label_set_text(ui_time__alarm, ct3Formatted);
         lv_label_set_text(ui_Label10, ct3Formatted);
+         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct3Formatted) + ")"));
       }
       else if (currentTotalMinutes >= ct3TotalMinutes && currentTotalMinutes < ct4TotalMinutes)
       {
         Serial.println("*********CT4: " + String(ct4Formatted));
         lv_label_set_text(ui_time__alarm, ct4Formatted);
         lv_label_set_text(ui_Label10, ct4Formatted);
+         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct4Formatted) + ")"));
       }
       else
       {
         Serial.println("***********CT1: " + String(ct1Formatted));
         lv_label_set_text(ui_time__alarm, ct1Formatted);
         lv_label_set_text(ui_Label10, ct1Formatted);
+         LINE.send(String("\nขณะนี้เวลา " + String(timeStr) + "\nสำหรับ " + String(selectedClientName) + "\nถึงเวลาทานยารอบต่อไปเวลา (" + String(ct1Formatted) + ")"));
       }
 
       // อัพเดท LVGL labels
@@ -653,7 +661,6 @@ void postsensorA()
     Serial.println(httpResponseCode);
     String payload = http.getString();
     Serial.println(payload);
-   
   }
   else
   {
@@ -760,7 +767,7 @@ void setup()
   Sound.begin();
   Card.begin(); // uncomment if you want to Read/Write/Play/Load file in MicroSD Card
 
-  audio.setVolume(15);
+
   // Map peripheral to LVGL
   Display.useLVGL(); // Map display to LVGL
   Touch.useLVGL();   // Map touch screen to LVGL
@@ -779,9 +786,6 @@ void setup()
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
 
-  Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
-  Serial.println(F("AHT20+BMP280 test"));
-
   Wire.begin();
   if (aht20.begin() == false)
   {
@@ -791,12 +795,16 @@ void setup()
   }
   Serial.println(F("AHT20 OK"));
 
+  Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
+  Serial.println(F("AHT20+BMP280 test"));
+
   lv_obj_add_event_cb(ui_P_refresh, client_click_handle, LV_EVENT_CLICKED, NULL);
   lv_obj_add_event_cb(ui_Button1, accept_click_handle, LV_EVENT_CLICKED, NULL);
   Getclient(); // เรียกใช้ฟังก์ชัน httpsGet()
   Getmedtotal();
   PostTempandHumi();
   lv_disp_load_scr(ui_Index);
+  LINE.begin(LINE_TOKEN);
 }
 
 void loop()
@@ -857,19 +865,23 @@ void loop()
 
     // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามนั้น
     int currentTotalMinutes = timeClient.getHours() * 60 + timeClient.getMinutes();
-
+  
     Serial.println("********************************timeStr: " + String(currentTotalMinutes));
 
     // เปรียบเทียบเวลาปัจจุบันกับค่า CT และแสดงผลตามเงื่อนไข
     if (currentTotalMinutes == ct1TotalMinutes ||
         currentTotalMinutes == ct2TotalMinutes ||
         currentTotalMinutes == ct3TotalMinutes ||
-        currentTotalMinutes == ct4TotalMinutes)
+        currentTotalMinutes == ct4TotalMinutes) 
     {
-      Serial.println("*********Compare: " + String(currentTotalMinutes));
-      lv_obj_clear_flag(ui_loading, LV_OBJ_FLAG_HIDDEN); // แสดง ui_loading
+      Serial.println("*********Compare: " +  String(timeClient.getFormattedTime()) );
+      LINE.send(String("\n💊ตอนนี้ถึงเวลาทานยาแล้ว💊" +  String(timeClient.getFormattedTime())   ));
+      lv_obj_clear_flag(ui_loading, LV_OBJ_FLAG_HIDDEN); // Show ui_loading
       alertStartTime = millis();
       showAlert = true;
+
+    } else {
+      sent = false;
     }
   }
   if (showAlert)
